@@ -1,0 +1,598 @@
+<title>ТЗ mdpravo.ru</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: одна колонка чтения ~68ch + липкая лента глав сверху; главы — крупные номера,
+   внутри — карточки только там, где это отдельный объект (чек-листы, запреты, макеты). */
+:root{
+  --bg:#F7F5F0; --surface:#FFFFFF; --ink:#20242C; --ink-2:#687080;
+  --navy:#111827; --gold:#B49A68; --gold-ink:#7A6338; --gold-soft:#EFE8DA;
+  --line:#E4E5E8; --band-bg:#111827; --band-fg:#F7F5F0; --band-fg-2:#B7BDC8;
+  --danger:#B42318; --danger-bg:#FBE9E7; --ok:#1E7A4C; --ok-bg:#E6F2EB;
+  --chip:#ECEAE3;
+  --f-display:"Unbounded","Arial Black",system-ui,sans-serif;
+  --f-body:"Onest",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1420; --surface:#171A21; --ink:#F2EFE8; --ink-2:#B7BDC8;
+  --navy:#F2EFE8; --gold:#C9B183; --gold-ink:#D7C29A; --gold-soft:#2A2618;
+  --line:#2A3142; --band-bg:#1C2333; --band-fg:#F7F5F0; --band-fg-2:#B7BDC8;
+  --danger:#F97066; --danger-bg:#3A1C1C; --ok:#4CC38A; --ok-bg:#15301F; --chip:#1E2533;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1420; --surface:#171A21; --ink:#F2EFE8; --ink-2:#B7BDC8;
+  --navy:#F2EFE8; --gold:#C9B183; --gold-ink:#D7C29A; --gold-soft:#2A2618;
+  --line:#2A3142; --band-bg:#1C2333; --band-fg:#F7F5F0; --band-fg-2:#B7BDC8;
+  --danger:#F97066; --danger-bg:#3A1C1C; --ok:#4CC38A; --ok-bg:#15301F; --chip:#1E2533;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(72px + env(safe-area-inset-top,0px))}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--ink);font:400 17px/1.65 var(--f-body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.read{max-width:68ch}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-0.01em}
+h2{font-size:clamp(1.6rem,1.2rem + 1.8vw,2.4rem);line-height:1.12;font-weight:700}
+h3{font-size:1.12rem;line-height:1.3;font-weight:500;margin-top:8px}
+p{margin:0}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px;border-radius:6px}
+code{font-family:var(--f-mono);font-size:.86em;background:var(--chip);padding:2px 6px;border-radius:6px;overflow-wrap:anywhere}
+mark{background:linear-gradient(transparent 55%,var(--gold-soft) 55%);color:inherit;padding:0 2px}
+.eyebrow{font:500 12px/1 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-ink)}
+.muted{color:var(--ink-2)}
+
+/* logo */
+.lg-base{fill:var(--navy)} .lg-accent{fill:var(--gold)} .lg-text{fill:var(--navy)}
+
+/* top bar */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;padding-block:10px}
+.top svg{height:26px;width:auto;flex:none}
+.toc{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;min-width:0;flex:1}
+.toc::-webkit-scrollbar{display:none}
+.toc a{flex:none;text-decoration:none;font:500 13px/1 var(--f-body);padding:9px 12px;border-radius:999px;color:var(--ink-2);border:1px solid transparent}
+.toc a:hover{color:var(--ink);border-color:var(--line)}
+.toc a.on{color:var(--bg);background:var(--ink)}
+
+/* hero */
+.hero{padding-block:clamp(40px,6vw,88px) 32px}
+.hero h1{font-size:clamp(2.3rem,1.4rem + 5vw,5rem);line-height:1;font-weight:700;margin-top:18px}
+.hero h1 .g{color:var(--gold)}
+.hero .lead{font-size:clamp(1.05rem,1rem + .4vw,1.3rem);margin-top:22px;max-width:56ch}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.chip{font:500 13px/1 var(--f-body);background:var(--chip);padding:9px 12px;border-radius:999px}
+.chip b{font-weight:600}
+.chip.new{background:var(--gold-soft);color:var(--gold-ink)}
+
+/* tl;dr band */
+.band{background:var(--band-bg);color:var(--band-fg);border-radius:24px;padding:clamp(24px,4vw,44px);margin-block:12px 8px}
+.band .eyebrow{color:var(--gold)}
+.band h2{font-size:clamp(1.3rem,1rem + 1.2vw,1.8rem);margin-top:10px}
+.tldr{list-style:none;padding:0;margin:22px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:18px 28px}
+.tldr li{display:grid;gap:4px;min-width:0}
+.tldr b{font-family:var(--f-display);font-weight:500;font-size:1rem}
+.tldr span{color:var(--band-fg-2);font-size:.95rem;line-height:1.5}
+
+/* chapters */
+.ch{padding-block:clamp(56px,7vw,96px) 0}
+.ch-head{display:grid;grid-template-columns:auto 1fr;gap:6px 20px;align-items:end;border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:28px}
+.ch-num{font:700 clamp(3.4rem,2.4rem + 4vw,6rem)/.8 var(--f-display);color:var(--gold);grid-row:span 2}
+.ch-head .eyebrow{align-self:end}
+.ch-sum{font-size:1.08rem;margin-bottom:28px}
+.blk{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:36px}
+.blk:first-of-type{margin-top:0}
+.blk>p,.blk>ul,.blk>ol{max-width:68ch}
+ul.dots,ol.steps{margin:0;padding-left:1.2em;display:grid;gap:6px}
+ul.dots li::marker{color:var(--gold)}
+ol.steps li::marker{font-family:var(--f-mono);color:var(--gold-ink);font-size:.9em}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;min-width:0;display:grid;gap:8px;align-content:start}
+.card h3{margin:0}
+.card p,.card li{font-size:.96rem;line-height:1.55}
+.card ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
+
+.check{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.check li{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start}
+.check li::before{content:"";width:18px;height:18px;margin-top:4px;border:2px solid var(--gold);border-radius:5px}
+
+.table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:.94rem}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 12px/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:600}
+
+.prio{counter-reset:p;list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:2px 28px}
+.prio li{counter-increment:p;display:grid;grid-template-columns:2.2em 1fr;gap:8px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.prio li::before{content:counter(p,decimal-leading-zero);font:500 13px/1.9 var(--f-mono);color:var(--gold-ink)}
+
+.callout{border-left:4px solid var(--gold);background:var(--gold-soft);padding:14px 18px;border-radius:0 var(--r) var(--r) 0;max-width:72ch}
+.callout.red{border-color:var(--danger);background:var(--danger-bg)}
+
+/* palette */
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.sw{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.sw i{display:block;height:64px}
+.sw div{padding:10px 12px;display:grid;gap:2px;font-size:.84rem}
+.sw b{font-weight:600}
+.sw code{background:none;padding:0;font-size:.78rem;color:var(--ink-2)}
+
+/* logo plate */
+.plates{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
+.plate{border-radius:var(--r);padding:30px 26px;display:flex;align-items:center;justify-content:center;min-height:130px}
+.plate svg{width:100%;max-width:300px;height:auto}
+.plate.light{background:#F7F5F0;border:1px solid var(--line)}
+.plate.dark{background:#111827}
+.plate.light .p-b,.plate.light .p-t{fill:#111827}
+.plate.dark .p-b,.plate.dark .p-t{fill:#F7F5F0}
+.plate .p-a{fill:#B49A68}
+
+/* pages list */
+.pages{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:8px}
+.pages li{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:.92rem}
+.pages li span{font-family:var(--f-mono);color:var(--gold-ink);font-size:.8em;margin-right:6px}
+
+/* homepage blueprint */
+.blueprint{display:grid;gap:6px;max-width:640px}
+.bp{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.bp b{font:500 12px/1.4 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--gold-ink);padding-top:2px}
+.bp p{font-size:.95rem;line-height:1.5}
+.bp.hero-bp{background:var(--band-bg);color:var(--band-fg);border-color:transparent}
+.bp.hero-bp b{color:var(--gold)}
+
+/* status pills */
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{font:500 13px/1 var(--f-body);padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);display:inline-flex;gap:8px;align-items:center}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--gold)}
+.pill.s1 i{background:#8A93A3}.pill.s2 i{background:#1F5BB8}.pill.s3 i{background:#B48A2C}.pill.s4 i{background:#C2410C}.pill.s5 i{background:#7A6338}.pill.s6 i{background:#1E7A4C}
+
+/* payment flow */
+.flow{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:8px;counter-reset:f}
+.flow li{counter-increment:f;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:.92rem;line-height:1.4;display:grid;gap:6px}
+.flow li::before{content:counter(f);font:700 1.1rem/1 var(--f-display);color:var(--gold)}
+
+/* breakpoint ruler */
+.ruler{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:22px 18px 16px}
+.ruler-in{position:relative;min-width:620px;height:86px}
+.ruler-line{position:absolute;left:0;right:0;top:40px;height:2px;background:var(--line)}
+.tick{position:absolute;top:28px;transform:translateX(-50%);display:grid;justify-items:center;gap:6px}
+.tick i{width:2px;height:26px;background:var(--ink)}
+.tick b{font:500 12px/1 var(--f-mono)}
+.tick span{font-size:11px;color:var(--ink-2);white-space:nowrap;position:absolute;top:-24px}
+.devices{display:flex;flex-wrap:wrap;gap:8px}
+
+/* lighthouse */
+.lh{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px}
+.lh div{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:4px}
+.lh b{font:700 2rem/1 var(--f-display);color:var(--ok)}
+.lh span{font-size:.9rem;color:var(--ink-2)}
+
+/* stages */
+.stages{list-style:none;padding:0;margin:0;display:grid;gap:0}
+.stages li{display:grid;grid-template-columns:56px 1fr;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
+.stages li b{font:700 1.6rem/1 var(--f-display);color:var(--gold)}
+.stages h3{margin:0 0 4px;font-size:1rem}
+.stages p{font-size:.96rem;color:var(--ink-2)}
+
+/* forbidden */
+.nope{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:8px}
+.nope li{display:grid;grid-template-columns:26px 1fr;gap:10px;background:var(--danger-bg);border-radius:12px;padding:12px 14px;font-size:.95rem;line-height:1.45}
+.nope li::before{content:"✕";font:700 15px/1.5 var(--f-body);color:var(--danger);text-align:center}
+
+/* deliverables */
+.files{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:8px;counter-reset:d;list-style:none;padding:0;margin:0}
+.files li{counter-increment:d;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:2em 1fr;gap:8px;font-size:.95rem}
+.files li::before{content:counter(d);font:500 13px/1.7 var(--f-mono);color:var(--gold-ink)}
+
+/* done */
+.done{background:var(--band-bg);color:var(--band-fg);border-radius:24px;padding:clamp(24px,4vw,44px);margin-top:28px}
+.done .eyebrow{color:var(--gold)}
+.done h2{margin-top:10px;font-size:clamp(1.3rem,1rem + 1.2vw,1.8rem)}
+.done ul{list-style:none;padding:0;margin:22px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:10px 28px}
+.done li{display:grid;grid-template-columns:22px 1fr;gap:10px;color:var(--band-fg);font-size:.98rem;line-height:1.5}
+.done li::before{content:"✓";color:var(--gold);font-weight:700}
+
+footer{padding-block:64px 48px;color:var(--ink-2);font-size:.9rem}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-between;border-top:1px solid var(--line);padding-top:24px}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  .top svg{height:22px}
+  .bp{grid-template-columns:1fr;gap:6px}
+  .ch-head{grid-template-columns:1fr}
+  .ch-num{grid-row:auto}
+  .stages li{grid-template-columns:40px 1fr}
+}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <a href="#top" aria-label="В начало">{{LOGO_SMALL}}</a>
+    <nav class="toc" aria-label="Главы ТЗ">
+      <a href="#ch1">Цель</a><a href="#ch2">Аудит</a><a href="#ch3">Бренд</a><a href="#ch4">Сайт</a><a href="#ch5">Кабинет</a><a href="#ch6">Качество</a><a href="#ch7">План и запреты</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero wrap">
+  <p class="eyebrow">Техническое задание · редизайн и модернизация</p>
+  <h1>Новый mdpravo<span class="g">.</span>ru</h1>
+  <p class="lead">Делаем из сайта «Мосдевелопмент Право» современную юридическую платформу: понятную, красивую, быструю и безопасную. Работающее не ломаем: аккаунты, оплату, документы и SEO сохраняем.</p>
+  <div class="chips">
+    <span class="chip"><b>7</b> глав вместо 20 разделов</span>
+    <span class="chip"><b>15</b> файлов на выходе</span>
+    <span class="chip"><b>9</b> этапов работы</span>
+    <span class="chip new">Обновлено: стиль — молодёжный, палитра прежняя</span>
+  </div>
+</section>
+
+<section class="wrap" aria-labelledby="tldr-h">
+  <div class="band">
+    <p class="eyebrow">Если прочитать только это</p>
+    <h2 id="tldr-h">Главное за 30 секунд</h2>
+    <ul class="tldr">
+      <li><b>Сначала аудит</b><span>Изучаем код и живой сайт. Ничего не меняем, пока не поняли, как всё работает.</span></li>
+      <li><b>Новый бренд</b><span>Свой логотип, понятная дизайн-система, тёмно-синий + молочный + золото.</span></li>
+      <li><b>Путь клиента короче</b><span>От «опишите ситуацию» до готового документа без лишних шагов.</span></li>
+      <li><b>Ничего не теряем</b><span>Аккаунты, история платежей, документы, URL и статьи остаются на месте.</span></li>
+      <li><b>Безопасность важнее красоты</b><span>Конфиденциальные документы видит только их владелец. Оплату подтверждает сервер.</span></li>
+      <li><b>Честная готовность</b><span>«Работает» говорим только про то, что проверили тестами.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 1 -->
+<section class="ch wrap" id="ch1" aria-labelledby="ch1-h">
+  <div class="ch-head"><span class="ch-num" aria-hidden="true">1</span><p class="eyebrow">Разделы 1–2 исходного ТЗ</p><h2 id="ch1-h">Кто делает и зачем</h2></div>
+  <p class="ch-sum read">Работа уровня сильного digital-агентства: от аудита до готового к запуску проекта. Не макеты и не советы, а реальный код, проверенный и подготовленный к безопасному выкату.</p>
+
+  <div class="blk">
+    <h3>Роли в команде</h3>
+    <div class="pills">
+      <span class="pill">Product Designer</span><span class="pill">UX/UI Designer</span><span class="pill">Brand Designer</span>
+      <span class="pill">Frontend</span><span class="pill">Backend</span><span class="pill">Full-Stack</span><span class="pill">DevOps</span><span class="pill">QA</span>
+      <span class="pill">Доступность, SEO и безопасность</span>
+    </div>
+  </div>
+
+  <div class="blk">
+    <h3>10 приоритетов по порядку важности</h3>
+    <ol class="prio">
+      <li>Обновить визуальную систему и фирменный стиль.</li>
+      <li>Разработать новый профессиональный логотип.</li>
+      <li>Сделать интерфейс адаптивным для всех основных устройств.</li>
+      <li>Упростить путь клиента от обращения до услуги.</li>
+      <li>Сохранить личный кабинет и способы входа.</li>
+      <li>Сохранить оплату, счета и подтверждение оплаты, если они есть.</li>
+      <li>Улучшить работу с делами, обращениями, документами и историей.</li>
+      <li>Сохранить URL, SEO-ценность и полезный контент.</li>
+      <li>Усилить безопасность, скорость, доступность и надёжность.</li>
+      <li>Подготовить проект к масштабированию.</li>
+    </ol>
+    <p class="callout">Правило номер ноль: <b>не удалять работающие функции ради красивого интерфейса.</b></p>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="ch wrap" id="ch2" aria-labelledby="ch2-h">
+  <div class="ch-head"><span class="ch-num" aria-hidden="true">2</span><p class="eyebrow">Раздел 3 · этап 0, обязательный</p><h2 id="ch2-h">Аудит до любых изменений</h2></div>
+  <p class="ch-sum read">Прежде чем рисовать, разбираемся, как устроен проект сейчас, и сверяем код с живым сайтом. Если функция не найдена, так и пишем, а не делаем вид, что она работает.</p>
+
+  <div class="blk">
+    <h3>Что выяснить</h3>
+    <div class="grid3">
+      <div class="card"><h3>Код и архитектура</h3><ul><li>frontend-фреймворк и версия</li><li>backend и язык</li><li>структура, маршруты</li><li>библиотеки и стили</li></ul></div>
+      <div class="card"><h3>Данные и доступ</h3><ul><li>база, модели, связи, миграции</li><li>вход и восстановление пароля</li><li>роли и права админов</li></ul></div>
+      <div class="card"><h3>Интеграции</h3><ul><li>API и серверные связи</li><li>оплата и платёжные уведомления</li><li>почта, CRM, мессенджеры</li></ul></div>
+      <div class="card"><h3>Контент и функции</h3><ul><li>загрузка и выдача документов</li><li>формы заявок</li><li>поиск и база знаний</li></ul></div>
+      <div class="card"><h3>Инфраструктура</h3><ul><li>аналитика, SEO, ошибки</li><li>переменные окружения</li><li>порядок развёртывания</li></ul></div>
+    </div>
+  </div>
+
+  <div class="blk">
+    <h3>Итог аудита — таблица совместимости</h3>
+    <div class="table-scroll" role="region" aria-label="Таблица совместимости" tabindex="0">
+      <table>
+        <thead><tr><th>Функция</th><th>Сейчас</th><th>Что меняем</th><th>Как не сломать</th></tr></thead>
+        <tbody>
+          <tr><td>Публичные страницы</td><td class="muted">проверить</td><td>Новый UI/UX</td><td>Сохранить важные URL</td></tr>
+          <tr><td>Личный кабинет</td><td class="muted">проверить</td><td>Новый интерфейс</td><td>Существующие аккаунты</td></tr>
+          <tr><td>Авторизация</td><td class="muted">проверить</td><td>Удобнее вход</td><td>Не сбрасывать пароли</td></tr>
+          <tr><td>Оплата</td><td class="muted">проверить</td><td>Понятнее сценарии</td><td>Тот же провайдер</td></tr>
+          <tr><td>Документы</td><td class="muted">проверить</td><td>Проще загрузка</td><td>То же хранилище</td></tr>
+          <tr><td>Обращения и дела</td><td class="muted">проверить</td><td>Понятные статусы</td><td>Сохранить связи</td></tr>
+          <tr><td>База знаний</td><td class="muted">проверить</td><td>Удобнее навигация</td><td>Сохранить статьи</td></tr>
+          <tr><td>Умный поиск</td><td class="muted">проверить</td><td>Лучше поиск</td><td>Сохранить рабочие API</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="blk">
+    <h3>Результат этапа</h3>
+    <ul class="check">
+      <li><span><code>docs/PROJECT_AUDIT.md</code> и <code>docs/IMPLEMENTATION_PLAN.md</code></span></li>
+      <li><span>Сразу переходим к реализации, не останавливаясь на плане.</span></li>
+      <li><span>Если не хватает доступа, делаем доступную часть и явно пишем, что блокирует остальное.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="ch wrap" id="ch3" aria-labelledby="ch3-h">
+  <div class="ch-head"><span class="ch-num" aria-hidden="true">3</span><p class="eyebrow">Раздел 4</p><h2 id="ch3-h">Фирменный стиль и логотип</h2></div>
+  <p class="ch-sum read">Бренд юристов, которым доверяют: компетентность, уверенность, конфиденциальность, точность, сервис, технологии, надёжность. Подача — <mark>современная, молодёжная и понятная</mark>, без пафоса.</p>
+
+  <div class="blk">
+    <h3>Чего избегаем</h3>
+    <div class="pills"><span class="pill">шаблоны «юрсайтов» 2010-х</span><span class="pill">клипарт</span><span class="pill">сложные гербы</span><span class="pill">молотки судьи</span><span class="pill">стоковые рукопожатия</span><span class="pill">эффекты ради эффектов</span><span class="pill">металлические градиенты</span></div>
+  </div>
+
+  <div class="blk">
+    <h3>Палитра (CSS-переменные)</h3>
+    <div class="swatches">
+      <div class="sw"><i style="background:#111827"></i><div><b>Тёмно-синий</b><code>#111827</code></div></div>
+      <div class="sw"><i style="background:#171A21"></i><div><b>Графит</b><code>#171A21</code></div></div>
+      <div class="sw"><i style="background:#F7F5F0"></i><div><b>Молочный фон</b><code>#F7F5F0</code></div></div>
+      <div class="sw"><i style="background:#FFFFFF"></i><div><b>Белый</b><code>#FFFFFF</code></div></div>
+      <div class="sw"><i style="background:#B49A68"></i><div><b>Золото, акцент</b><code>#B49A68</code></div></div>
+      <div class="sw"><i style="background:#20242C"></i><div><b>Текст</b><code>#20242C</code></div></div>
+      <div class="sw"><i style="background:#687080"></i><div><b>Вторичный текст</b><code>#687080</code></div></div>
+      <div class="sw"><i style="background:#E4E5E8"></i><div><b>Границы</b><code>#E4E5E8</code></div></div>
+    </div>
+    <p class="read muted">Плюс семантика: доступный зелёный для успеха, контрастные цвета для предупреждений и ошибок. Золото дозируем. Контраст текста по WCAG. Светлая тема обязательна, тёмная — если реально помогает.</p>
+  </div>
+
+  <div class="blk">
+    <h3>Логотип</h3>
+    <p class="read">Три концепции → сравнение по узнаваемости, масштабируемости и уместности → выбор сильнейшей. Направления: монограмма, геометрия защиты и позиции, абстрактный знак точности. Не копировать чужие логотипы. Название — <b>«Мосдевелопмент Право»</b>, строго без ошибок.</p>
+    <div class="plates" aria-label="Выбранный логотип: светлая и тёмная версии">
+      <div class="plate light">{{LOGO_PLATE}}</div>
+      <div class="plate dark">{{LOGO_PLATE}}</div>
+    </div>
+    <p class="muted" style="font-size:.9rem">Выбрана концепция «Лигатура МП»: правая мачта «М» — это левая мачта «П», золотая перемычка соединяет опоры.</p>
+    <div class="card">
+      <h3>Что сдаём по логотипу</h3>
+      <div class="pills"><span class="pill">горизонтальный</span><span class="pill">компактный знак</span><span class="pill">монохром</span><span class="pill">светлый и тёмный</span><span class="pill">favicon</span><span class="pill">SVG-исходники</span><span class="pill">PNG-превью</span><span class="pill">мини-гайд</span></div>
+      <p class="muted">Файлы в <code>public/brand/</code>, подключены к живому интерфейсу, годятся для сайта, кабинета, документов и презентаций.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="ch wrap" id="ch4" aria-labelledby="ch4-h">
+  <div class="ch-head"><span class="ch-num" aria-hidden="true">4</span><p class="eyebrow">Разделы 5–6</p><h2 id="ch4-h">Структура сайта и главная</h2></div>
+  <p class="ch-sum read">Навигация, в которой не нужно разбираться. Старые страницы с пользой для бизнеса или SEO не удаляем только потому, что новая схема выглядит проще.</p>
+
+  <div class="blk">
+    <h3>Публичные страницы</h3>
+    <ul class="pages">
+      <li><span>01</span>Главная</li><li><span>02</span>Юридические услуги</li><li><span>03</span>Страница услуги</li><li><span>04</span>Умный поиск</li><li><span>05</span>База знаний</li><li><span>06</span>Статья</li><li><span>07</span>Документы и материалы</li><li><span>08</span>О компании</li><li><span>09</span>Специалисты</li><li><span>10</span>Как мы работаем</li><li><span>11</span>Стоимость</li><li><span>12</span>FAQ</li><li><span>13</span>Контакты</li><li><span>14</span>Сотрудничество</li><li><span>15</span>Вход и регистрация</li>
+    </ul>
+  </div>
+
+  <div class="blk">
+    <h3>Навигация</h3>
+    <div class="grid2">
+      <div class="card"><h3>Компьютер</h3><p>Компактная шапка: логотип, основные разделы, заметная кнопка «Получить консультацию». Второстепенное — в логичных группах.</p></div>
+      <div class="card"><h3>Телефон</h3><p>Меню открывается и закрывается предсказуемо и не перекрывает важное. Кабинет всегда под рукой, но не спорит с главной кнопкой.</p></div>
+    </div>
+    <p class="read muted">Продумать состояния: загрузка, ошибка, пустой поиск, недоступный раздел.</p>
+  </div>
+
+  <div class="blk">
+    <h3>Главная — сверху вниз</h3>
+    <div class="blueprint">
+      <div class="bp hero-bp"><b>Hero</b><p>Сильный заголовок, суть специализации и две кнопки: «Получить консультацию» и «Найти решение самостоятельно». Без обещаний победы и гарантий.</p></div>
+      <div class="bp"><b>Направления</b><p>Аккуратные карточки реальных направлений: уголовно-правовые вопросы, госорганы, недвижимость, долги, жилищные, трудовые, семейные и другие. Специализацию не меняем без подтверждения.</p></div>
+      <div class="bp"><b>Как работаем</b><p>Описываете ситуацию → специалист изучает материалы → согласуем объём, цену и сроки → вы получаете результат и инструкции.</p></div>
+      <div class="bp"><b>Стоимость</b><p>Только действующие цены. Чётко отделяем бесплатное первичное обращение от платной консультации.</p></div>
+      <div class="bp"><b>Специалисты</b><p>Реальные фото, имена, должности. Никаких выдуманных отзывов, дипломов, стажа и побед.</p></div>
+      <div class="bp"><b>Знания и поиск</b><p>Найти полезный материал и сразу понять, что делать дальше.</p></div>
+      <div class="bp"><b>FAQ</b><p>Раскрывающиеся вопросы, удобные с клавиатуры и на тач-экране.</p></div>
+      <div class="bp"><b>Обращение</b><p>«Опишите ситуацию» — и пояснение, что на старте хватит пары предложений.</p></div>
+      <div class="bp"><b>Footer</b><p>Реквизиты, контакты, политика конфиденциальности, согласия. Все ссылки проверены.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="ch wrap" id="ch5" aria-labelledby="ch5-h">
+  <div class="ch-head"><span class="ch-num" aria-hidden="true">5</span><p class="eyebrow">Разделы 7–10 · критично</p><h2 id="ch5-h">Кабинет, оплата и документы</h2></div>
+  <p class="ch-sum read">Самая чувствительная часть. Кабинет нельзя потерять, отключить или подменить красивой заглушкой.</p>
+
+  <div class="blk">
+    <h3>Сохраняем как есть</h3>
+    <ul class="check">
+      <li><span>Учётные записи, идентификаторы, историю, связи с делами и платежи.</span></li>
+      <li><span>Клиенты не регистрируются заново из-за редизайна.</span></li>
+      <li><span>Хеширование паролей и механизм входа не трогаем без отдельного плана безопасной миграции.</span></li>
+    </ul>
+  </div>
+
+  <div class="blk">
+    <h3>Разделы кабинета</h3>
+    <ul class="pages">
+      <li>Главная панель</li><li>Мои дела и обращения</li><li>Документы</li><li>Счета и оплата</li><li>История платежей</li><li>Сообщения и уведомления</li><li>Профиль и безопасность</li><li>Помощь и связь со специалистом</li>
+    </ul>
+    <p class="read">На главной панели клиент сразу видит: текущие дела, их статусы, что от него ждут, неоплаченные счета, свежие документы, последние события и ближайшие согласованные сроки. <b>Только реальные данные</b>, никаких придуманных статусов и сроков.</p>
+  </div>
+
+  <div class="blk">
+    <h3>Статусы на понятном языке</h3>
+    <div class="pills">
+      <span class="pill s1"><i></i>Новое обращение</span><span class="pill s2"><i></i>На рассмотрении</span><span class="pill s3"><i></i>Ожидаем документы</span><span class="pill s4"><i></i>Ожидаем оплату</span><span class="pill s5"><i></i>В работе</span><span class="pill s6"><i></i>Завершено</span>
+    </div>
+    <p class="read muted">Если на сервере статусы другие — делаем слой отображения поверх, бизнес-логику не трогаем.</p>
+  </div>
+
+  <div class="blk">
+    <h3>Оплата: путь клиента</h3>
+    <ol class="flow">
+      <li>Открывает счёт или услугу</li><li>Видит описание, сумму, статус</li><li>Платит через действующую систему</li><li>Получает подтверждение</li><li>Возвращается в кабинет</li><li>Видит актуальный статус</li><li>Открывает историю и документы</li>
+    </ol>
+    <div class="grid2">
+      <div class="card"><h3>Обязательно</h3><ul>
+        <li>Оплату подтверждает сервер через механизм провайдера.</li>
+        <li>Подлинность уведомлений (webhook) проверяется.</li>
+        <li>Один платёж не обрабатывается дважды.</li>
+        <li>Отмена, ошибка, ожидание и возврат обрабатываются.</li>
+        <li>Идентификаторы и статусы транзакций хранятся, история сохраняется.</li>
+      </ul></div>
+      <div class="card"><h3>Нельзя</h3><ul>
+        <li>Считать оплатой сам факт возврата на страницу «успех».</li>
+        <li>Давать клиенту менять сумму или ставить себе «Оплачено».</li>
+        <li>Хранить карты и ключи открыто, класть секреты во frontend, репозиторий или логи.</li>
+        <li>Делать фиктивные успешные платежи для демо.</li>
+        <li>Менять провайдера без обоснования.</li>
+      </ul></div>
+    </div>
+    <p class="callout">Нет доступа к провайдеру в разработке — тестовый режим провайдера или задокументированный mock только для тестов, в production он выключен. Интеграции нет вовсе — сначала варианты подключения и требования. Заглушку за оплату не выдаём.</p>
+  </div>
+
+  <div class="blk">
+    <h3>Документы</h3>
+    <div class="grid2">
+      <div class="card"><h3>Клиент видит</h3><ul><li>список, название, тип, дату загрузки</li><li>к какому делу относится, статус обработки</li><li>предпросмотр поддерживаемых форматов</li><li>загрузку с прогрессом и понятными ошибками</li></ul></div>
+      <div class="card"><h3>Защита</h3><ul><li>лимит типов и размеров; проверка MIME и содержимого, а не только расширения</li><li>безопасные имена, защита от вредоносных файлов</li><li>никаких постоянных публичных ссылок на приватные файлы</li><li>права проверяются при каждом просмотре, скачивании, загрузке и удалении</li></ul></div>
+    </div>
+    <p class="read muted">Старые файлы не теряем и не меняем. Удаление учитывает требования хранения.</p>
+  </div>
+
+  <div class="blk">
+    <h3>Интерфейс кабинета</h3>
+    <p class="read">Своя дизайн-система в связке с сайтом. На больших экранах — боковое меню, на телефоне — компактное меню или нижняя панель. Акцент на иерархии, читаемости, видимых статусах и минимуме действий. Скелетоны при загрузке, пустые состояния, ошибки сети с повтором, подтверждения критичных действий. Графики — только если помогают клиенту.</p>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="ch wrap" id="ch6" aria-labelledby="ch6-h">
+  <div class="ch-head"><span class="ch-num" aria-hidden="true">6</span><p class="eyebrow">Разделы 11–16</p><h2 id="ch6-h">Качество: устройства, код, защита, тесты</h2></div>
+  <p class="ch-sum read">Один адаптивный продукт для всех экранов, без отдельных «мобильных версий». Безопасность важнее визуальных эффектов.</p>
+
+  <div class="blk">
+    <h3>Устройства и контрольные ширины</h3>
+    <div class="devices pills"><span class="pill">Android</span><span class="pill">iPhone</span><span class="pill">iPad</span><span class="pill">MacBook</span><span class="pill">Windows</span><span class="pill">ноутбуки</span><span class="pill">сенсорные планшеты</span></div>
+    <div class="ruler" role="img" aria-label="Контрольные ширины: 320, 360, 390, 430, 768, 1024, 1280, 1440, 1920 пикселей">
+      <div class="ruler-in">{{RULER}}<div class="ruler-line"></div></div>
+    </div>
+    <p class="read muted">Это ширины для проверки, а не список поддерживаемых экранов. Браузеры: Safari (iOS и macOS), Chrome (Android и Windows), Firefox, Edge.</p>
+    <ul class="dots read">
+      <li>Нет горизонтальной прокрутки страницы, текст не обрезается.</li>
+      <li>Карточки перестраиваются, таблицы адаптивны, модалки не вылезают за экран.</li>
+      <li>Формы удобны с открытой клавиатурой, кнопки крупные, ничего не завязано только на hover.</li>
+      <li>Нет фиксированной высоты у длинных текстов. Учитываем safe areas iPhone и iPad.</li>
+      <li>Проверяем с увеличенным масштабом и системным размером шрифта.</li>
+    </ul>
+  </div>
+
+  <div class="blk">
+    <h3>Технологии</h3>
+    <p class="read">Сначала существующий стек. Весь backend ради новых кнопок не переписываем; если стек мешает, объясняем и предлагаем миграцию отдельно.</p>
+    <div class="pills"><span class="pill">переиспользуемые компоненты</span><span class="pill">общая валидация форм</span><span class="pill">дизайн-токены</span><span class="pill">единые состояния загрузки и ошибок</span><span class="pill">без дублирования API-запросов</span><span class="pill">согласованные типы</span><span class="pill">централизованные ошибки</span><span class="pill">dev / test / production</span><span class="pill">интеграции проверяются отдельно</span></div>
+    <p class="read muted">Без тяжёлых зависимостей, мёртвого кода, временных костылей, кнопок-пустышек и дублей.</p>
+  </div>
+
+  <div class="blk">
+    <h3>Безопасность и конфиденциальность</h3>
+    <div class="grid3">
+      <div class="card"><h3>Доступ</h3><ul><li>клиенты изолированы друг от друга</li><li>сервер проверяет каждую защищённую операцию</li><li>защита от IDOR</li><li>защищённые маршруты кабинета</li><li>безопасные сессии</li></ul></div>
+      <div class="card"><h3>Атаки</h3><ul><li>CSRF, XSS, SQL-инъекции</li><li>rate limiting входа и форм</li><li>проверка всех входных данных на сервере</li><li>безопасные HTTP-заголовки</li><li>защита загрузки файлов</li></ul></div>
+      <div class="card"><h3>Данные</h3><ul><li>секреты только в окружении</li><li>логи без персональных данных</li><li>бэкапы и восстановление</li><li>безопасные платёжные уведомления</li></ul></div>
+    </div>
+    <p class="callout">Законы РФ о персональных данных, локализации, согласиях и хранении документов проверяем на применимость. Юридических гарантий не придумываем — готовим список требований, которые подтверждают ответственные специалисты компании. Тексты дел, персональные данные и документы во внешние AI-сервисы не передаём без отдельного разрешения и мер защиты.</p>
+  </div>
+
+  <div class="blk">
+    <h3>SEO и доступность</h3>
+    <div class="grid2">
+      <div class="card"><h3>SEO</h3><ul><li>URL сохраняем; меняем — ставим 301 и проверяем ссылки</li><li>title, description, canonical, Open Graph</li><li>sitemap.xml и robots.txt</li><li>структурированные данные, логичные заголовки</li><li>публичное индексируется, кабинет и приватные документы — нет</li></ul></div>
+      <div class="card"><h3>WCAG 2.2 AA</h3><ul><li>клавиатурная навигация и видимый фокус</li><li>подписи полей и понятные ошибки форм</li><li>контраст, семантика, alt-тексты</li><li>доступные модальные окна</li><li>работа со скринридерами</li></ul></div>
+    </div>
+  </div>
+
+  <div class="blk">
+    <h3>Скорость — цели Lighthouse для публичных страниц</h3>
+    <div class="lh">
+      <div><b>90+</b><span>Performance</span></div><div><b>95+</b><span>Accessibility</span></div><div><b>95+</b><span>Best Practices</span></div><div><b>95+</b><span>SEO</span></div>
+    </div>
+    <p class="read muted">Сжатые и адаптивные картинки, lazy loading ниже первого экрана, меньше JavaScript, кэш с учётом приватности (личные страницы публично не кэшируются), работа на медленном интернете. Кабинет меряем отдельно. Цифры — только из реальных замеров.</p>
+  </div>
+
+  <div class="blk">
+    <h3>Тесты</h3>
+    <div class="grid3">
+      <div class="card"><h3>Функции</h3><ul><li>все основные страницы и навигация</li><li>формы, регистрация, вход, восстановление</li><li>права доступа, кабинет</li><li>загрузка и скачивание документов</li><li>счета; успешная, неуспешная и ожидающая оплата</li><li>повторные уведомления, история платежей</li><li>поиск, база знаний, пустые состояния и ошибки</li></ul></div>
+      <div class="card"><h3>Адаптивность</h3><ul><li>телефоны, планшеты, компьютеры</li><li>Playwright или текущая система тестов</li><li>визуальные тесты ключевых страниц, если позволяет инфраструктура</li></ul></div>
+      <div class="card"><h3>Безопасность</h3><ul><li>клиент не видит чужие документы, дела, счета и платежи</li><li>проверяется сервер, а не спрятанные кнопки</li><li>без production-данных без разрешения</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="ch wrap" id="ch7" aria-labelledby="ch7-h">
+  <div class="ch-head"><span class="ch-num" aria-hidden="true">7</span><p class="eyebrow">Разделы 17–20</p><h2 id="ch7-h">План, запреты и финиш</h2></div>
+
+  <div class="blk">
+    <h3>Порядок работ</h3>
+    <ol class="stages">
+      <li><b>A</b><div><h3>Аудит</h3><p>Код, маршруты, интеграции, данные, инфраструктура. Фиксируем риски.</p></div></li>
+      <li><b>B</b><div><h3>Резервирование</h3><p>Способ бэкапа, отдельная ветка, исходное состояние сохранено. Ничего разрушительного.</p></div></li>
+      <li><b>C</b><div><h3>Дизайн-система</h3><p>Токены, типографика, кнопки, поля, карточки, статусы, модалки, логотип.</p></div></li>
+      <li><b>D</b><div><h3>Публичная часть</h3><p>Шапка, главная, услуги, база знаний, поиск, стоимость, FAQ, контакты, footer.</p></div></li>
+      <li><b>E</b><div><h3>Личный кабинет</h3><p>Новый интерфейс на старой авторизации, логике и данных.</p></div></li>
+      <li><b>F</b><div><h3>Документы и платежи</h3><p>Отдельная проверка интеграций, улучшения без фиктивных функций.</p></div></li>
+      <li><b>G</b><div><h3>Адаптивность</h3><p>Телефоны, планшеты, компьютеры.</p></div></li>
+      <li><b>H</b><div><h3>Тестирование</h3><p>Сборка, линтер, тесты, проверки безопасности, исправления.</p></div></li>
+      <li><b>I</b><div><h3>Подготовка к запуску</h3><p>Инструкция по выкату, переменные окружения, миграции, бэкапы, откат. В production — только с доступами, бэкапом, проверкой платежей и разрешением владельца.</p></div></li>
+    </ol>
+  </div>
+
+  <div class="blk">
+    <h3>Жёсткие запреты</h3>
+    <ul class="nope">
+      <li>Удалять базу данных</li><li>Сбрасывать аккаунты клиентов</li><li>Удалять историю платежей</li><li>Отключать текущую авторизацию</li><li>Менять платёжного провайдера без согласования</li><li>Создавать фальшивые счета и подтверждения</li><li>Оставлять кнопки, которые ничего не делают</li><li>Заменять backend статичными макетами</li><li>Класть секреты в клиентский код</li><li>Публиковать реальные персональные данные</li><li>Подменять сведения о компании выдумкой</li><li>Менять цены без подтверждения</li><li>Удалять SEO-страницы без проверки</li><li>Делать необратимые миграции без бэкапа</li><li>Говорить «работает» без теста</li>
+    </ul>
+  </div>
+
+  <div class="blk">
+    <h3>Что сдаём</h3>
+    <ol class="files">
+      <li>Обновлённый рабочий проект</li><li>Логотип в SVG и PNG</li><li>Варианты логотипа и favicon</li><li>Единая дизайн-система</li><li>Адаптивная публичная часть</li><li>Обновлённый кабинет</li><li>Сохранённые интеграции</li><li>Проверенные документы и оплата</li><li>Автотесты</li><li><code>docs/PROJECT_AUDIT.md</code></li><li><code>docs/IMPLEMENTATION_PLAN.md</code></li><li><code>docs/CHANGELOG.md</code></li><li><code>docs/TEST_REPORT.md</code></li><li><code>docs/DEPLOYMENT.md</code></li><li><code>docs/ROLLBACK.md</code></li>
+    </ol>
+    <p class="read">В итоговом отчёте отдельно: что изменено, что осталось как было, какие тесты реально пройдены, чему нужны реальные доступы и внешние системы, какие риски остались, что сделать перед публикацией.</p>
+  </div>
+
+  <div class="done">
+    <p class="eyebrow">Критерий успеха</p>
+    <h2>Готово к запуску, только когда</h2>
+    <ul>
+      <li>У сайта цельный новый дизайн</li><li>Логотип внедрён везде, где нужен</li><li>Страницы корректны на телефонах и компьютерах</li><li>Клиенты входят в свои аккаунты</li><li>Личные данные и история на месте</li><li>Реальные платежи идут через действующую интеграцию</li><li>Статус оплаты подтверждает сервер</li><li>Документы видят только те, кому можно</li><li>Основные формы и действия работают</li><li>SEO и важные URL сохранены или перенаправлены</li><li>Критичные тесты пройдены</li><li>Есть безопасный способ отката</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>ТЗ на редизайн mdpravo.ru · «Мосдевелопмент Право»</span>
+    <span>Сначала аудит, потом реализация. Честно фиксируем ограничения.</span>
+  </div>
+</footer>
+
+<script>
+(()=>{const links=[...document.querySelectorAll('.toc a')];
+const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.remove('on'));const a=map.get(e.target.id);if(a){a.classList.add('on');a.scrollIntoView({block:'nearest',inline:'nearest'})}}})},{rootMargin:'-40% 0px -55% 0px'});
+map.forEach((_,id)=>{const s=document.getElementById(id);if(s)io.observe(s)});})();
+</script>
