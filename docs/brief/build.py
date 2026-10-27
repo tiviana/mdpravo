@@ -7,16 +7,15 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 SVG = open(os.path.join(ROOT, "public/brand/logo-horizontal-mono-dark.svg"), encoding="utf-8").read()
 VB = re.search(r'viewBox="([^"]+)"', SVG).group(1)
-PATHS = re.findall(r'<path d="([^"]+)"', SVG)
+PATHS = re.findall(r'<path data-role="(\w+)" d="([^"]+)"', SVG)
 G = re.search(r'<g transform="([^"]+)">', SVG).group(1)
-assert len(PATHS) == 5, "expected 3 mark paths + 2 wordmark lines"
+assert PATHS and any(r == "text" for r, _ in PATHS), "logo SVG must carry data-role paths"
 
 
 def logo(prefix, cls_base, cls_acc, cls_text, label):
-    mark = "".join(
-        f'<path class="{cls_acc if i == 2 else cls_base}" d="{d}"/>' for i, d in enumerate(PATHS[:3])
-    )
-    words = "".join(f'<path class="{cls_text}" d="{d}"/>' for d in PATHS[3:])
+    cls = {"base": cls_base, "accent": cls_acc}
+    mark = "".join(f'<path class="{cls[r]}" d="{d}"/>' for r, d in PATHS if r != "text")
+    words = "".join(f'<path class="{cls_text}" d="{d}"/>' for r, d in PATHS if r == "text")
     return (f'<svg viewBox="{VB}" role="img" aria-label="{label}" xmlns="http://www.w3.org/2000/svg">'
             f'<g transform="{G}">{mark}</g>{words}</svg>')
 

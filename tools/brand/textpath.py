@@ -120,3 +120,29 @@ def x_height(font_path: str, size: float, wght: float | None = None) -> float:
     os2 = font["OS/2"]
     xh = getattr(os2, "sxHeight", 0) or int(font["head"].unitsPerEm * 0.5)
     return xh * size / font["head"].unitsPerEm
+
+
+def glyph_run(text: str, font_path: str, wght: float | None = None, tracking_em: float = 0.0):
+    """Return [(glyph_name, advance_in_font_units)] incl. kerning and tracking."""
+    font = load_font(font_path, wght)
+    cmap = font.getBestCmap()
+    hmtx = font["hmtx"]
+    kern = kerning_for(font_path, wght)
+    names = [cmap[ord(ch)] for ch in text]
+    upem = font["head"].unitsPerEm
+    out = []
+    for i, n in enumerate(names):
+        adv = hmtx[n][0]
+        if i < len(names) - 1:
+            adv += kern.get((n, names[i + 1]), 0) + tracking_em * upem
+        out.append((n, adv))
+    return out
+
+
+def glyph_path(name: str, font_path: str, matrix, wght: float | None = None) -> str:
+    """Draw one glyph with an affine matrix (a, b, c, d, e, f) in font units → svg."""
+    font = load_font(font_path, wght)
+    gs = font.getGlyphSet()
+    pen = SVGPathPen(gs, ntos=_ntos)
+    gs[name].draw(TransformPen(pen, matrix))
+    return pen.getCommands()
