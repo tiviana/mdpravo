@@ -11,17 +11,17 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from concepts2 import portico, wordmark  # noqa: E402
 
-NAVY = "#111827"
-MILK = "#F7F5F0"
+BRAND = "#542531"  # основной бордовый
+MILK = "#F8F3EE"  # фон
 WHITE = "#FFFFFF"
-GOLD = "#B49A68"
+GOLD = "#C4A477"  # акцент
 FULL_NAME = "Мосдевелопмент Право"
 
 VARIANTS = {
     # suffix: (mark base, mark accent, text)
-    "": (NAVY, GOLD, NAVY),            # основной — для светлых фонов
+    "": (BRAND, GOLD, BRAND),            # основной — для светлых фонов
     "-inverse": (MILK, GOLD, MILK),    # для тёмных фонов
-    "-mono-dark": (NAVY, NAVY, NAVY),  # одноцветный, светлые фоны, печать
+    "-mono-dark": (BRAND, BRAND, BRAND),  # одноцветный, светлые фоны, печать
     "-mono-light": (WHITE, WHITE, WHITE),  # одноцветный, тёмные фоны
 }
 
@@ -63,7 +63,7 @@ def mark(base, accent):
 
 def favicon():
     parts, _ = portico()
-    body = (f'<rect width="48" height="48" rx="11" fill="{NAVY}"/>'
+    body = (f'<rect width="48" height="48" rx="11" fill="{BRAND}"/>'
             + paths(parts, MILK, GOLD, "translate(6.7 6.7) scale(0.72)"))
     return svg_doc(body, "0 0 48 48", 48, 48)
 
@@ -82,25 +82,25 @@ def favicon16():
         (_poly([(5, 8), (6.2, 8), (8, 10.4), (9.8, 8), (11, 8), (11, 9.8), (8, 12.2), (5, 9.8)]), "base"),
         (_poly([(2, 14), (14, 14), (14, 15), (2, 15)]), "base"),
     ]
-    body = f'<rect width="16" height="16" rx="3" fill="{NAVY}"/>' + paths(parts, MILK, GOLD)
+    body = f'<rect width="16" height="16" rx="3" fill="{BRAND}"/>' + paths(parts, MILK, GOLD)
     return svg_doc(body, "0 0 16 16", 16, 16)
 
 
 def maskable():
     parts, _ = portico()
-    body = (f'<rect width="48" height="48" fill="{NAVY}"/>'
+    body = (f'<rect width="48" height="48" fill="{BRAND}"/>'
             + paths(parts, MILK, GOLD, "translate(10.1 10.1) scale(0.58)"))
     return svg_doc(body, "0 0 48 48", 48, 48)
 
 
 def social_preview():
-    """OG-картинка 1200×630: логотип на тёмно-синем."""
+    """OG-картинка 1200×630: логотип на бордовом."""
     svg, (w, h) = horizontal(MILK, GOLD, MILK)
     inner = svg.split(">", 1)[1].rsplit("</svg>", 1)[0]
     vb = svg.split('viewBox="')[1].split('"')[0]
     sc = 760 / w
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">'
-            f'<rect width="1200" height="630" fill="{NAVY}"/>'
+            f'<rect width="1200" height="630" fill="{BRAND}"/>'
             f'<svg x="{(1200 - 760) / 2:.1f}" y="{(630 - h * sc) / 2:.1f}" width="760" height="{h * sc:.1f}" viewBox="{vb}">{inner}</svg>'
             f'</svg>')
 

@@ -1,100 +1,88 @@
 /*
- * Design tokens — «Мосдевелопмент Право»
- * Contrast ratios (WCAG 2.2) are verified by tests/contrast.test.js.
- * Rule: gold #B49A68 is decorative on light surfaces (2.48:1 on milk) —
- * for gold-coloured TEXT on light surfaces use --c-gold-ink (5.25:1).
+ * Дизайн-токены «Мосдевелопмент Право» — бордовая палитра (утверждена 27.10.2026).
+ * Контраст по WCAG 2.2 проверяет tests/contrast.test.js.
+ * Правило: акцент #C4A477 на светлом фоне — только декор (2.13:1);
+ * золотой ТЕКСТ на светлом — --c-accent-ink (5.27:1). На бордовом акцент читается (5.29:1).
+ * Бордовый — для заголовков и отдельных блоков, не сплошной фон страницы.
  */
 @font-face {
-  font-family: "Inter";
-  src: url("/fonts/inter-400.woff") format("woff");
-  font-weight: 400; font-style: normal; font-display: swap;
+  font-family: "Unbounded";
+  src: url("/fonts/unbounded.woff") format("woff");
+  font-weight: 200 900; font-style: normal; font-display: swap;
 }
 @font-face {
-  font-family: "Inter";
-  src: url("/fonts/inter-500.woff") format("woff");
-  font-weight: 500; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: "Inter";
-  src: url("/fonts/inter-600.woff") format("woff");
-  font-weight: 600; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: "Lora";
-  src: url("/fonts/lora-variable.woff") format("woff");
-  font-weight: 400 700; font-style: normal; font-display: swap;
+  font-family: "Onest";
+  src: url("/fonts/onest.woff") format("woff");
+  font-weight: 100 900; font-style: normal; font-display: swap;
 }
 
 :root {
-  /* Brand palette */
-  --c-navy: #111827;          /* основной тёмно-синий */
-  --c-graphite: #171A21;      /* глубокий графитовый */
-  --c-milk: #F7F5F0;          /* молочный фон */
-  --c-white: #FFFFFF;
-  --c-gold: #B49A68;          /* приглушённое золото — акцент, не текст на светлом */
-  --c-gold-ink: #7A6338;      /* золото для текста на светлом: 5.25:1 на milk */
-  --c-gold-soft: #EFE8DA;     /* фон золотых плашек */
+  /* Палитра бренда */
+  --c-primary: #542531;      /* основной: заголовки-акценты, блоки, знак */
+  --c-secondary: #762F40;    /* вторичный: градиенты, hover, второй план блоков */
+  --c-accent: #C4A477;       /* акцент: линии, иконки, фронтон знака; на бордовом — текст */
+  --c-bg: #F8F3EE;           /* фон страницы */
+  --c-text: #30262A;         /* основной текст: 13.26:1 на фоне */
 
-  /* Text */
-  --c-text: #20242C;          /* 14.28:1 на milk */
-  --c-text-2: #687080;        /* 4.57:1 на milk, 4.98:1 на white */
-  --c-text-on-dark: #F7F5F0;  /* 16.28:1 на navy */
-  --c-text-2-on-dark: #B7BDC8;/* 9.40:1 на navy */
+  /* Производные */
+  --c-surface: #FFFFFF;
+  --c-surface-2: #F1E8E1;    /* приглушённые подложки */
+  --c-text-2: #6E6268;       /* вторичный текст: 5.28:1 на фоне */
+  --c-accent-ink: #7E6036;   /* золотой текст на светлом: 5.27:1 */
+  --c-accent-soft: #EFE3D2;  /* фон меток и выделений */
+  --c-on-primary: #F8F3EE;   /* текст на бордовом: 11.3:1 */
+  --c-on-primary-2: #E3D3CD; /* вторичный текст на бордовом */
+  --c-line: #E7DCD5;         /* декоративные разделители */
+  --c-line-strong: #8F7F86;  /* границы полей ввода: 3.43:1 (WCAG 1.4.11) */
 
-  /* Lines */
-  --c-border: #E4E5E8;        /* декоративные разделители (не границы полей) */
-  --c-border-strong: #7E8592; /* границы полей ввода: 3.41:1 на milk (WCAG 1.4.11) */
-  --c-border-on-dark: #2A3142;
+  /* Семантические */
+  --c-success: #1E7A4C;  --c-success-bg: #E6F2EB;
+  --c-warning: #8A5300;  --c-warning-bg: #FBF0DD;
+  --c-danger:  #B42318;  --c-danger-bg:  #FBE9E7;
+  --c-info:    #1F5BB8;  --c-info-bg:    #E7EEFA;
 
-  /* Semantic */
-  --c-success: #1E7A4C;  --c-success-bg: #E6F2EB;  /* 4.89:1 на milk */
-  --c-warning: #8A5300;  --c-warning-bg: #FBF0DD;  /* 5.81:1 */
-  --c-danger:  #B42318;  --c-danger-bg:  #FBE9E7;  /* 6.03:1 */
-  --c-info:    #1F5BB8;  --c-info-bg:    #E7EEFA;  /* 5.94:1 */
+  /* Градиенты */
+  --g-brand: linear-gradient(135deg, #542531 0%, #762F40 55%, #8A3A4C 100%);
+  --g-brand-soft: linear-gradient(135deg, #F8F3EE 0%, #F1E3DA 100%);
+  --g-accent-line: linear-gradient(90deg, #C4A477, #E2CBA2 50%, #C4A477);
+  --g-text: linear-gradient(100deg, #542531 0%, #762F40 45%, #9C5A4A 100%);
 
-  /* Surfaces */
-  --surface-page: var(--c-milk);
-  --surface-card: var(--c-white);
-  --surface-dark: var(--c-navy);
-  --surface-dark-2: var(--c-graphite);
+  /* Типографика */
+  --font-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --font-sans: "Onest", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --fs-12: 0.75rem; --fs-14: 0.875rem; --fs-16: 1rem; --fs-18: 1.125rem; --fs-20: 1.25rem;
+  --fs-h4: 1.0625rem;
+  --fs-h3: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+  --fs-h2: clamp(1.625rem, 1.2rem + 1.9vw, 2.75rem);
+  --fs-h1: clamp(2.125rem, 1.3rem + 4vw, 4.75rem);
+  --lh-tight: 1.08; --lh-snug: 1.28; --lh-body: 1.62;
 
-  /* Typography */
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --font-serif: "Lora", Georgia, "Times New Roman", serif;
-  --fs-12: 0.75rem; --fs-14: 0.875rem; --fs-16: 1rem; --fs-18: 1.125rem;
-  --fs-20: 1.25rem; --fs-24: 1.5rem;
-  --fs-h3: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
-  --fs-h2: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem);
-  --fs-h1: clamp(2.125rem, 1.6rem + 2.6vw, 3.75rem);
-  --lh-tight: 1.15; --lh-snug: 1.3; --lh-body: 1.6;
-  --tracking-caps: 0.12em;
-
-  /* Spacing (4px base) */
+  /* Отступы (база 4px) */
   --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px;
-  --s-8: 32px; --s-10: 40px; --s-12: 48px; --s-16: 64px; --s-20: 80px; --s-24: 96px;
-  --section-y: clamp(56px, 4rem + 4vw, 120px);
-  --gutter: clamp(16px, 2vw + 8px, 32px);
+  --s-8: 32px; --s-10: 40px; --s-12: 48px; --s-16: 64px; --s-20: 80px;
+  --section-y: clamp(56px, 3rem + 5vw, 128px);
+  --gutter: clamp(16px, 1.5vw + 10px, 32px);
   --container: 1200px;
-  --container-narrow: 760px;
+  --measure: 68ch;
 
-  /* Shape & depth */
-  --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-pill: 999px;
-  --shadow-1: 0 1px 2px rgb(17 24 39 / 0.06), 0 1px 1px rgb(17 24 39 / 0.04);
-  --shadow-2: 0 8px 24px rgb(17 24 39 / 0.08), 0 2px 6px rgb(17 24 39 / 0.05);
+  /* Форма и глубина */
+  --r-sm: 8px; --r-md: 14px; --r-lg: 22px; --r-xl: 32px; --r-pill: 999px;
+  --shadow-1: 0 1px 2px rgb(48 38 42 / 0.06), 0 1px 1px rgb(48 38 42 / 0.04);
+  --shadow-2: 0 14px 40px -12px rgb(84 37 49 / 0.25), 0 3px 10px rgb(48 38 42 / 0.06);
 
-  /* Interaction */
-  --focus-ring: 0 0 0 3px var(--c-milk), 0 0 0 5px var(--c-navy);
-  --tap-min: 44px;
-  --ease: cubic-bezier(.2, .7, .2, 1);
-  --dur: 180ms;
+  /* Взаимодействие и движение */
+  --tap: 44px;
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --dur-1: 160ms; --dur-2: 320ms; --dur-3: 700ms;
+  --focus: 0 0 0 3px var(--c-bg), 0 0 0 5px var(--c-secondary);
 
-  /* Safe areas (iPhone / iPad) */
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left: env(safe-area-inset-left, 0px);
-  --safe-right: env(safe-area-inset-right, 0px);
+  /* Безопасные зоны iPhone/iPad */
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root { --dur: 0ms; }
+  :root { --dur-1: 0ms; --dur-2: 0ms; --dur-3: 0ms; }
 }

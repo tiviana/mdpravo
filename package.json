@@ -1,0 +1,21 @@
+{
+  "name": "mdpravo",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Сайт и личный кабинет «Мосдевелопмент Право»",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server.js",
+    "dev": "NODE_ENV=development node --disable-warning=ExperimentalWarning --watch src/server.js",
+    "migrate": "node --disable-warning=ExperimentalWarning src/cli.js migrate",
+    "seed:demo": "NODE_ENV=development node --disable-warning=ExperimentalWarning src/cli.js seed-demo",
+    "user:create": "node --disable-warning=ExperimentalWarning src/cli.js create-user",
+    "content:check": "node --disable-warning=ExperimentalWarning src/cli.js check-content",
+    "content:import": "node --disable-warning=ExperimentalWarning src/cli.js import-legacy",
+    "test": "NODE_ENV=test node --disable-warning=ExperimentalWarning --test --test-concurrency=1 tests/",
+    "test:e2e": "python3 tests/e2e/responsive.py"
+  }
+}
