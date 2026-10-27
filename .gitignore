@@ -1,0 +1,12 @@
+node_modules/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+data/
+storage/
+*.sqlite
+*.sqlite-*
+test-results/
+.DS_Store
