@@ -10,12 +10,13 @@ import { alert, crumbs, csrfField, icon, layout, pageHead } from './ui.js';
 const S = ' — Мосдевелопмент Право';
 const home = ['Главная', '/'];
 
-function serviceCards(list, { featuredFirst = true } = {}) {
-  return html`<div class="grid">${list.map((d, i) => {
-    const featured = featuredFirst && d.priority;
-    return html`<a class="card service-card reveal ${featured ? 'service-card--featured' : ''}" href="${d.path}">
+function serviceCards(list) {
+  return html`<div class="svc-grid">${list.map((d, i) => {
+    const hero = i === 0;
+    const featured = d.priority;
+    return html`<a class="card service-card reveal ${featured ? 'service-card--featured' : ''} ${hero ? 'service-card--hero' : ''}" href="${d.path}" data-tilt="${hero ? 5 : 9}">
       <span class="num">${String(i + 1).padStart(2, '0')}</span>
-      <img class="art" src="${d.img}" alt="" width="112" height="112" loading="lazy" decoding="async">
+      <img class="art" src="${d.img}" alt="" width="${hero ? 320 : 112}" height="${hero ? 320 : 112}" loading="${hero ? 'eager' : 'lazy'}" decoding="async">
       <h3>${d.navTitle || d.title}</h3>
       <p>${d.short}</p>
       <span class="link-arrow more">Подробнее ${icon('arrow')}</span>
@@ -29,7 +30,7 @@ function articleList(list) {
 
 function contactSection(ctx, opts = {}) {
   return html`<section class="wrap section" id="contact">
-  <div class="panel">
+  <div class="panel spot">
     <div class="stack-lg" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));align-items:start">
       <div class="stack">
         <p class="eyebrow">Консультация</p>
@@ -50,79 +51,99 @@ function contactSection(ctx, opts = {}) {
 // ── Главная ────────────────────────────────────────────────────────────────
 export function homePage(ctx, formState = {}) {
   const body = html`
-<section class="hero">
-  <div class="hero-glow" aria-hidden="true"><span></span><span></span><span></span></div>
+<section class="scene hero-x">
+  <span class="scene-glow scene-glow--gold" aria-hidden="true"></span>
+  <span class="scene-glow scene-glow--red" aria-hidden="true"></span>
   <div class="wrap hero-grid">
     <div>
-      <p class="eyebrow">Мосдевелопмент Право · Москва</p>
-      <h1>Защищаем интересы. <span class="grad-text">Формируем сильную правовую&nbsp;позицию.</span></h1>
-      <p class="lead">Разбираем ситуацию, оцениваем риски и готовим заявления, жалобы и другие документы. Уголовно-правовые вопросы, споры с госорганами и гражданские дела.</p>
-      <div class="hero-actions">
-        <a class="btn btn--primary" href="#contact">Получить консультацию ${icon('arrow')}</a>
-        <a class="btn btn--ghost" href="/knowledge/">Найти решение самостоятельно</a>
+      <p class="eyebrow fade-up" style="--d:.05s">Мосдевелопмент Право · Москва</p>
+      <h1 data-split>Защищаем интересы. <span class="gold-text">Формируем сильную правовую позицию.</span></h1>
+      <p class="lead fade-up" style="--d:.7s">Разбираем ситуацию, оцениваем риски и готовим заявления, жалобы и другие документы. Уголовно-правовые вопросы, споры с госорганами и гражданские дела.</p>
+      <div class="hero-actions fade-up" style="--d:.85s">
+        <a class="btn btn--gold btn--shine" href="#contact">Получить консультацию ${icon('arrow')}</a>
+        <a class="btn btn--outline-gold" href="/knowledge/">Найти решение самостоятельно</a>
       </div>
-      <div class="hero-tags">
+      <div class="hero-tags fade-up" style="--d:1s">
         <span class="chip chip--accent"><i></i>Первичная консультация — бесплатно</span>
         <span class="chip">${company.experience}</span>
       </div>
+      <a class="scroll-cue fade-up" style="--d:1.2s" href="#services"><span aria-hidden="true"></span>Листайте вниз</a>
     </div>
-    <div class="hero-visual" aria-hidden="true">
-      <img src="/img/icons3d/criminal-law.webp" alt="" width="512" height="512" fetchpriority="high">
-      <img src="/img/icons3d/public-authorities.webp" alt="" width="512" height="512">
-      <img src="/img/icons3d/value-documents.webp" alt="" width="512" height="512">
+    <div class="stage fade-up" style="--d:.3s" data-stage aria-hidden="true">
+      <div class="stage-inner">
+        <span class="orbit"></span><span class="orbit orbit--2"></span>
+        <span class="podium"></span>
+        <span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span>
+        <div class="obj obj--main"><img src="/img/icons3d/public-authorities.webp" alt="" width="512" height="512" fetchpriority="high"></div>
+        <div class="obj obj--l"><img src="/img/icons3d/criminal-law.webp" alt="" width="512" height="512"></div>
+        <div class="obj obj--r"><img src="/img/icons3d/value-documents.webp" alt="" width="512" height="512"></div>
+      </div>
     </div>
   </div>
 </section>
 
-<div class="ticker" aria-hidden="true"><div class="ticker-track">
+<div class="ticker ticker--wine" aria-hidden="true"><div class="ticker-track">
   ${[0, 1].map(() => html`<span>${directions.map((d) => html`<span>${d.navTitle || d.title}</span>`)}</span>`)}
 </div></div>
 
 <section class="wrap section">
   <div class="grid grid--4">
-    ${values.map((v) => html`<div class="value reveal"><img src="${v.img}" alt="" width="96" height="96" loading="lazy"><h3>${v.title}</h3><p class="muted">${v.text}</p></div>`)}
+    ${values.map((v) => html`<div class="value reveal reveal--scale"><div class="medal"><img src="${v.img}" alt="" width="92" height="92" loading="lazy"></div><h3>${v.title}</h3><p class="muted">${v.text}</p></div>`)}
   </div>
 </section>
 
-<section class="wrap section" id="services">
-  <div class="section-head section-head--row">
-    <div class="stack">
-      <p class="eyebrow">Услуги</p>
-      <h2>Основные <span class="accent-title">направления</span></h2>
-      <p>Сложные правовые ситуации, документы и выстраивание позиции.</p>
+<section class="scene band" id="services">
+  <span class="scene-glow scene-glow--red" aria-hidden="true"></span>
+  <div class="wrap">
+    <div class="section-head section-head--row">
+      <div class="stack">
+        <p class="eyebrow">Услуги</p>
+        <h2 class="reveal">Основные <span class="gold-text">направления</span></h2>
+        <p>Сложные правовые ситуации, документы и выстраивание позиции.</p>
+      </div>
+      <a class="link-arrow" href="/directions/">Все направления ${icon('arrow')}</a>
     </div>
-    <a class="link-arrow" href="/directions/">Все направления ${icon('arrow')}</a>
+    ${serviceCards(directions)}
   </div>
-  ${serviceCards(directions)}
 </section>
 
 <section class="wrap section">
   <div class="section-head section-head--row">
     <div class="stack">
       <p class="eyebrow">Как мы работаем</p>
-      <h2>Понятный <span class="accent-title">порядок работы</span></h2>
+      <h2 class="reveal">Понятный <span class="accent-title">порядок работы</span></h2>
       <p>Не нужно заранее собирать идеальный комплект документов — разберёмся, что действительно потребуется.</p>
     </div>
     <a class="link-arrow" href="/process/">Все этапы ${icon('arrow')}</a>
   </div>
-  <div class="steps">${process.map((s) => html`<div class="step reveal"><img src="${s.img}" alt="" width="88" height="88" loading="lazy"><h3>${s.title}</h3><p>${s.text}</p></div>`)}</div>
+  <div class="steps steps--line">${process.map((s) => html`<div class="step reveal" data-tilt="6"><img src="${s.img}" alt="" width="88" height="88" loading="lazy"><h3>${s.title}</h3><p>${s.text}</p></div>`)}</div>
 </section>
 
-<section class="wrap section" id="prices">
-  <div class="section-head"><p class="eyebrow">Стоимость</p><h2>Понятные <span class="accent-title">условия</span></h2><p>${pricesFootnote}</p></div>
-  ${priceGrid()}
+<section class="scene band" id="prices">
+  <span class="scene-glow scene-glow--gold" aria-hidden="true"></span>
+  <div class="wrap stack-lg">
+    <div class="facts">
+      <div class="fact reveal"><b class="gold-text"><span data-count="10" data-suffix="+">10+</span></b><span>лет уголовной и гражданско-правовой практики</span></div>
+      <div class="fact reveal"><b class="gold-text"><span data-count="${directions.length}">${directions.length}</span></b><span>направлений права</span></div>
+      <div class="fact reveal"><b class="gold-text"><span data-count="${downloads.length}">${downloads.length}</span></b><span>образцов документов в базе знаний</span></div>
+      <div class="fact reveal"><b class="gold-text">0 ₽</b><span>первичная консультация</span></div>
+    </div>
+    <div class="section-head" style="margin:0"><p class="eyebrow">Стоимость</p><h2 class="reveal">Понятные <span class="gold-text">условия</span></h2><p>${pricesFootnote}</p></div>
+    ${priceGrid()}
+  </div>
 </section>
 
 <section class="wrap section">
   <div class="layout-aside">
     <div class="stack-lg">
-      <div class="section-head" style="margin:0"><p class="eyebrow">О компании</p><h2>Защищаем права граждан и бизнеса</h2>
+      <div class="section-head" style="margin:0"><p class="eyebrow">О компании</p><h2 class="reveal">Защищаем права <span class="accent-title">граждан и бизнеса</span></h2>
       <p>Приоритет — уголовно-правовые вопросы, правовая позиция и обращения в МВД, Следственный комитет и прокуратуру. Работаем и с гражданскими, административными, трудовыми и имущественными вопросами.</p></div>
       <div class="team">${team.map(personCard)}</div>
     </div>
-    <div class="card aside-sticky" style="background:var(--g-brand-soft)">
+    <div class="card aside-sticky gold-frame reveal" style="--frame-bg:#FBF6F0">
       <p class="eyebrow">Почему мы</p>
       <h3>${company.experience}</h3>
+      <hr class="gold-rule">
       <p>${company.slogan}</p>
       <a class="link-arrow" href="/about/">Подробнее о компании ${icon('arrow')}</a>
     </div>
@@ -131,7 +152,7 @@ export function homePage(ctx, formState = {}) {
 
 <section class="wrap section">
   <div class="section-head section-head--row">
-    <div class="stack"><p class="eyebrow">Полезное</p><h2>Разбираем сложные ситуации <span class="accent-title">понятным языком</span></h2></div>
+    <div class="stack"><p class="eyebrow">Полезное</p><h2 class="reveal">Разбираем сложные ситуации <span class="accent-title">понятным языком</span></h2></div>
     <a class="link-arrow" href="/knowledge/">База знаний ${icon('arrow')}</a>
   </div>
   <form class="search reveal" action="/knowledge/search/" method="get" role="search">
@@ -143,20 +164,20 @@ export function homePage(ctx, formState = {}) {
     ${['vyzvali-dlya-dachi-obyasneniy', 'obzhalovat-reshenie-gosorgana', 'vzyskat-dolg-po-raspiske'].map((s) => {
       const a = articleBySlug.get(s);
       const t = topicBySlug.get(a.topic);
-      return html`<a class="card reveal" href="${a.path}"><span class="eyebrow">${t?.title || 'Статья'}</span><h3>${a.title}</h3><p>${a.description}</p><span class="link-arrow more">Читать ${icon('arrow')}</span></a>`;
+      return html`<a class="card reveal" href="${a.path}" data-tilt="5"><span class="eyebrow">${t?.title || 'Статья'}</span><h3>${a.title}</h3><p>${a.description}</p><span class="link-arrow more">Читать ${icon('arrow')}</span></a>`;
     })}
   </div>
 </section>
 
 <section class="wrap section narrow">
-  <div class="section-head center" style="justify-items:center"><p class="eyebrow">FAQ</p><h2>Частые вопросы</h2></div>
+  <div class="section-head center" style="justify-items:center"><p class="eyebrow">FAQ</p><h2 class="reveal">Частые вопросы</h2></div>
   ${faqList()}
 </section>
 
 ${contactSection(ctx, formState)}
 
 <section class="wrap section--tight">
-  <a class="card" href="/partnership/" style="grid-template-columns:1fr auto;align-items:center">
+  <a class="card gold-frame cta-row" href="/partnership/" data-tilt="4" style="--frame-bg:#FBF6F0">
     <div class="stack" style="gap:6px"><p class="eyebrow">Профессиональное сотрудничество</p><h3>Партнёрство с юристами, адвокатами и нотариусами</h3></div>
     <span class="link-arrow">Подробнее ${icon('arrow')}</span>
   </a>
@@ -184,7 +205,7 @@ function faqList() {
 }
 
 function priceGrid() {
-  return html`<div class="prices">${prices.map((p) => html`<div class="price reveal ${p.highlight ? 'price--free' : ''}">
+  return html`<div class="prices">${prices.map((p) => html`<div class="price reveal ${p.highlight ? 'price--free' : ''}" data-tilt="5">
     <h3>${p.title}</h3>
     <div class="amount">${p.price}</div>
     <p class="muted">${p.text}</p>
@@ -194,7 +215,7 @@ function priceGrid() {
 }
 
 function personCard(m) {
-  return html`<a class="person reveal" href="/team/${m.slug}/">
+  return html`<a class="person reveal" href="/team/${m.slug}/" data-tilt="5">
     <div class="photo"><img src="${m.photo}" alt="${m.photoAlt}" width="480" height="600" loading="lazy" decoding="async"></div>
     <div><h3>${m.name}</h3><p>${m.role}</p></div>
   </a>`;

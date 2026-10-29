@@ -1,0 +1,278 @@
+/* Сцена: тёмные бордовые полосы, металлическое золото, 3D и движение.
+   Подключается после app.css. Все анимации выключаются при prefers-reduced-motion. */
+
+/* ── Тёмная полоса во всю ширину ────────────────────────────────────────── */
+.scene {
+  position: relative; isolation: isolate; overflow: hidden;
+  background: var(--g-wine); color: var(--c-on-primary);
+}
+.scene h1, .scene h2, .scene h3 { color: var(--c-on-primary); }
+.scene p, .scene .muted { color: var(--c-on-primary-2); }
+.scene .eyebrow { color: var(--c-gold-light); }
+.scene a:not(.btn):not(.card):not(.chip) { color: var(--c-gold-light); }
+.scene .accent-title { color: var(--c-gold-light); }
+.scene .section-head p { color: var(--c-on-primary-2); }
+.scene .link-arrow { color: var(--c-gold-light); }
+/* тонкая сетка-«гильош» и зерно поверх градиента */
+.scene::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .5;
+  background:
+    repeating-radial-gradient(circle at 80% 10%, rgb(226 201 154 / .07) 0 1px, transparent 1px 22px),
+    radial-gradient(circle at 50% 120%, rgb(0 0 0 / .35), transparent 60%);
+}
+.scene > .scene-glow {
+  position: absolute; z-index: -1; pointer-events: none; border-radius: 50%; filter: blur(70px);
+  width: 46vmax; aspect-ratio: 1; opacity: .55; mix-blend-mode: screen;
+  animation: drift 24s ease-in-out infinite alternate;
+}
+.scene-glow--gold { background: radial-gradient(circle, rgb(196 164 119 / .55), transparent 65%); top: -18vmax; right: -12vmax; }
+.scene-glow--red { background: radial-gradient(circle, rgb(178 46 66 / .6), transparent 65%); bottom: -22vmax; left: -14vmax; animation-duration: 30s; animation-delay: -8s; }
+
+/* ── Металлическое золото ───────────────────────────────────────────────── */
+.gold-text {
+  background: var(--g-gold); background-size: 250% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: goldShine 7s ease-in-out infinite;
+}
+@keyframes goldShine { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+.gold-rule { height: 2px; border: 0; margin: 0; background: var(--g-gold); background-size: 200% 100%; animation: goldShine 6s linear infinite; }
+.btn--gold {
+  background: var(--g-gold); background-size: 220% 100%; color: var(--c-wine-900);
+  box-shadow: 0 10px 30px -10px rgb(196 164 119 / .6), inset 0 1px 0 rgb(255 255 255 / .5);
+  transition: background-position var(--dur-3) var(--ease-out), transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2);
+}
+.btn--gold:hover { background-position: 100% 0; color: var(--c-wine-900); transform: translateY(-2px); box-shadow: 0 16px 36px -10px rgb(196 164 119 / .75), inset 0 1px 0 rgb(255 255 255 / .6); }
+.btn--outline-gold { background: transparent; color: var(--c-gold-light); box-shadow: inset 0 0 0 1.5px rgb(226 201 154 / .7); }
+.btn--outline-gold:hover { color: var(--c-wine-900); background: var(--c-gold-light); }
+/* блик, пробегающий по кнопке */
+.btn--shine { position: relative; overflow: hidden; }
+.btn--shine::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-120%) skewX(-20deg);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / .45), transparent);
+  animation: btnShine 4.5s var(--ease-out) infinite;
+}
+@keyframes btnShine { 0%, 55% { transform: translateX(-120%) skewX(-20deg); } 80%, 100% { transform: translateX(220%) skewX(-20deg); } }
+
+/* золотая рамка-градиент */
+.gold-frame { border: 1.5px solid transparent; background: linear-gradient(var(--frame-bg, var(--c-surface)), var(--frame-bg, var(--c-surface))) padding-box, var(--g-gold-border) border-box; }
+
+/* ── Hero на бордовой сцене ─────────────────────────────────────────────── */
+.hero-x { padding-block: clamp(40px, 7vw, 110px) clamp(56px, 8vw, 128px); }
+.hero-x .hero-grid { position: relative; }
+.hero-x h1 { font-size: clamp(2.25rem, 1.2rem + 4.6vw, 5.25rem); line-height: 1.04; margin-top: var(--s-5); }
+.hero-x .lead { margin-top: var(--s-6); font-size: clamp(1.0625rem, 1rem + .4vw, 1.3125rem); color: var(--c-on-primary-2); max-width: 52ch; }
+.hero-x .chip { background: rgb(255 255 255 / .06); border-color: rgb(226 201 154 / .3); color: var(--c-on-primary); backdrop-filter: blur(6px); }
+.hero-x .chip--accent { background: rgb(196 164 119 / .16); color: var(--c-gold-light); border-color: rgb(226 201 154 / .4); }
+.hero-x .chip i { background: var(--c-gold-light); box-shadow: 0 0 0 4px rgb(226 201 154 / .2); animation: pulse 2.4s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgb(226 201 154 / .45); } 50% { box-shadow: 0 0 0 7px rgb(226 201 154 / 0); } }
+
+/* буквы заголовка поднимаются по очереди */
+.split .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .08em; margin-bottom: -.08em; }
+.split .w > span { display: inline-block; transform: translateY(105%); animation: wordUp .9s var(--ease-out) forwards; animation-delay: calc(var(--i) * 70ms + 120ms); }
+@keyframes wordUp { to { transform: none; } }
+.fade-up { opacity: 0; transform: translateY(16px); animation: fadeUp .9s var(--ease-out) forwards; animation-delay: var(--d, .5s); }
+@keyframes fadeUp { to { opacity: 1; transform: none; } }
+
+/* 3D-сцена с иконками: подиум, орбиты и параллакс */
+.stage { position: relative; aspect-ratio: 1; width: 100%; max-width: 560px; margin-inline: auto; perspective: 1100px; }
+.stage-inner { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .25s ease-out; }
+.stage .orbit {
+  position: absolute; inset: 9%; border-radius: 50%; border: 1px solid rgb(226 201 154 / .28);
+  transform: rotateX(68deg); animation: spin 28s linear infinite;
+}
+.stage .orbit::after { content: ""; position: absolute; top: -5px; left: 50%; width: 10px; height: 10px; border-radius: 50%; background: var(--c-gold-light); box-shadow: 0 0 18px 4px rgb(226 201 154 / .7); }
+.stage .orbit--2 { inset: 22%; animation-duration: 20s; animation-direction: reverse; border-color: rgb(226 201 154 / .18); }
+@keyframes spin { to { transform: rotateX(68deg) rotate(360deg); } }
+.stage .podium {
+  position: absolute; left: 18%; right: 18%; bottom: 6%; height: 14%; border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 35%, rgb(226 201 154 / .45), rgb(84 37 49 / .2) 55%, transparent 72%);
+  filter: blur(2px); transform: translateZ(-40px);
+}
+.stage .obj { position: absolute; filter: drop-shadow(0 30px 34px rgb(10 2 5 / .55)); transform: translateZ(var(--z, 0)); }
+.stage .obj img { width: 100%; animation: float 7s ease-in-out infinite; animation-delay: var(--fd, 0s); }
+.stage .obj--main { left: 24%; top: 10%; width: 54%; --z: 90px; }
+.stage .obj--l { left: -2%; top: 50%; width: 36%; --z: 40px; --fd: -2.4s; }
+.stage .obj--r { right: -3%; top: 44%; width: 38%; --z: 60px; --fd: -4.6s; }
+.stage .spark { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: var(--c-gold-light); box-shadow: 0 0 12px 3px rgb(226 201 154 / .8); animation: twinkle 3.2s ease-in-out infinite; }
+.stage .spark:nth-of-type(1) { top: 12%; left: 14%; animation-delay: -.4s; }
+.stage .spark:nth-of-type(2) { top: 30%; right: 8%; animation-delay: -1.6s; }
+.stage .spark:nth-of-type(3) { bottom: 22%; left: 40%; animation-delay: -2.4s; }
+.stage .spark:nth-of-type(4) { top: 6%; right: 30%; animation-delay: -.9s; }
+@keyframes twinkle { 0%, 100% { opacity: .2; transform: scale(.6); } 50% { opacity: 1; transform: scale(1.2); } }
+
+/* индикатор прокрутки */
+.scroll-cue { display: inline-flex; align-items: center; gap: 10px; margin-top: var(--s-10); font-size: var(--fs-14); color: var(--c-on-primary-2); text-decoration: none; }
+.scroll-cue span { width: 22px; height: 34px; border-radius: 12px; border: 1.5px solid rgb(226 201 154 / .6); position: relative; }
+.scroll-cue span::after { content: ""; position: absolute; left: 50%; top: 7px; width: 3px; height: 7px; margin-left: -1.5px; border-radius: 2px; background: var(--c-gold-light); animation: cue 1.8s var(--ease-out) infinite; }
+@keyframes cue { 0% { opacity: 0; transform: translateY(-3px); } 40% { opacity: 1; } 100% { opacity: 0; transform: translateY(10px); } }
+
+/* ── Шапка поверх сцены ─────────────────────────────────────────────────── */
+.site-header--scene { background: color-mix(in srgb, var(--c-wine-900) 78%, transparent); border-bottom-color: rgb(226 201 154 / .12); }
+.site-header--scene .nav a, .site-header--scene .icon-btn { color: var(--c-on-primary); }
+.site-header--scene .nav a:hover, .site-header--scene .icon-btn:hover { background: rgb(255 255 255 / .08); color: var(--c-gold-light); }
+.site-header--scene .nav a[aria-current="page"] { background: rgb(196 164 119 / .18); color: var(--c-gold-light); }
+.site-header--scene .logo img { filter: none; }
+.site-header--scene .icon-btn .dot { box-shadow: 0 0 0 2px var(--c-wine-900); }
+.site-header--scene .btn--primary { background: var(--g-gold); background-size: 220% 100%; color: var(--c-wine-900); box-shadow: none; }
+.site-header--scene .btn--primary:hover { color: var(--c-wine-900); background-position: 100% 0; }
+/* шапка всегда тёмная — полоса под вырезом iPhone того же цвета */
+body::before { background: var(--c-wine-900); }
+.logo-light { display: none; }
+.site-header--scene .logo-dark { display: none; }
+.site-header--scene .logo-light { display: block; }
+.site-header--scene.is-solid { background: color-mix(in srgb, var(--c-wine-900) 94%, transparent); }
+
+/* ── Бегущая строка: золото на бордовом ─────────────────────────────────── */
+.ticker--wine { background: var(--c-wine-800); border-color: rgb(226 201 154 / .16); }
+.ticker--wine .ticker-track span { color: var(--c-on-primary); }
+.ticker--wine .ticker-track span::after { color: var(--c-gold-light); }
+
+/* ── 3D-наклон карточек ─────────────────────────────────────────────────── */
+[data-tilt] { transform-style: preserve-3d; will-change: transform; }
+.js [data-tilt] { transition: transform .5s var(--ease-out), box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-2); }
+.js [data-tilt].is-tilting { transition: transform .08s linear, box-shadow var(--dur-2); }
+[data-tilt] .art, [data-tilt] .lift { transform: translateZ(40px); }
+.tilt-shine { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity var(--dur-2);
+  background: radial-gradient(400px circle at var(--mx, 50%) var(--my, 50%), rgb(255 255 255 / .35), transparent 45%); mix-blend-mode: soft-light; }
+[data-tilt]:hover .tilt-shine { opacity: 1; }
+
+/* карточки направлений на бордовой полосе */
+.scene .service-card { --frame-bg: #FBF7F2; background: linear-gradient(#FBF7F2, #F4ECE4) padding-box, var(--g-gold-border) border-box; border: 1.5px solid transparent; color: var(--c-text); }
+.scene .service-card h3 { color: var(--c-primary); }
+.scene .service-card p, .scene .service-card .num { color: var(--c-text-2); }
+.scene .service-card .link-arrow { color: var(--c-red); }
+.scene .service-card--featured { background: linear-gradient(150deg, #8E2A3B, #542531 70%) padding-box, var(--g-gold-border) border-box; color: var(--c-on-primary); }
+.scene .service-card--featured h3 { color: var(--c-on-primary); }
+.scene .service-card--featured p, .scene .service-card--featured .num { color: var(--c-on-primary-2); }
+.scene .service-card--featured .link-arrow { color: var(--c-gold-light); }
+.scene a.service-card:hover { box-shadow: 0 30px 60px -20px rgb(0 0 0 / .55), 0 0 0 1px rgb(226 201 154 / .3); }
+
+/* ── Цифры-факты ────────────────────────────────────────────────────────── */
+.facts { display: grid; gap: var(--s-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
+.fact { display: grid; gap: 6px; padding: var(--s-6); border-radius: var(--r-lg); background: rgb(255 255 255 / .04); border: 1px solid rgb(226 201 154 / .2); backdrop-filter: blur(6px); }
+.fact b { font: 700 clamp(2rem, 1.4rem + 2vw, 3rem)/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.fact span { color: var(--c-on-primary-2); font-size: var(--fs-14); }
+
+/* ── Этапы: линия прогресса, заполняется при прокрутке ──────────────────── */
+.steps--line { position: relative; }
+.steps--line::before { content: ""; position: absolute; left: 6%; right: 6%; top: 74px; height: 2px; background: var(--c-line); z-index: 0; }
+.steps--line::after { content: ""; position: absolute; left: 6%; top: 74px; height: 2px; width: calc(88% * var(--p, 0)); background: var(--g-gold); z-index: 0; transition: width .2s linear; }
+.steps--line .step { z-index: 1; }
+@media (max-width: 960px) { .steps--line::before, .steps--line::after { display: none; } }
+.step img { transition: transform var(--dur-3) var(--ease-out); }
+.step:hover img { transform: translateY(-8px) rotate(-6deg) scale(1.06); }
+
+/* ── Цены на бордовой сцене ─────────────────────────────────────────────── */
+.scene .price { --frame-bg: rgb(58 21 32 / .9); background: linear-gradient(rgb(255 255 255 / .05), rgb(255 255 255 / .02)) padding-box, linear-gradient(160deg, rgb(226 201 154 / .45), rgb(226 201 154 / .08)) border-box; border: 1px solid transparent; backdrop-filter: blur(8px); }
+.scene .price h3 { color: var(--c-on-primary); }
+.scene .price .amount { background: var(--g-gold); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: goldShine 8s ease-in-out infinite; }
+.scene .price .muted, .scene .price p { color: var(--c-on-primary-2); }
+.scene .price .note { border-top-color: rgb(226 201 154 / .2); color: var(--c-on-primary-2); }
+.scene .price li b { color: var(--c-gold-light); }
+.scene .price--free { background: linear-gradient(160deg, rgb(142 42 59 / .9), rgb(84 37 49 / .9)) padding-box, var(--g-gold-border) border-box; border: 1.5px solid transparent; }
+
+/* ── Ценности: медальоны ────────────────────────────────────────────────── */
+.medal { position: relative; width: 112px; height: 112px; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #F1E6DA 60%, #E7D7C6); box-shadow: inset 0 0 0 1.5px rgb(196 164 119 / .6), 0 18px 30px -16px rgb(84 37 49 / .45); }
+.medal img { width: 92px; height: 92px; transition: transform var(--dur-3) var(--ease-out); }
+.value:hover .medal img { transform: rotateY(20deg) scale(1.08); }
+
+/* ── Курсор-подсветка на панелях ────────────────────────────────────────── */
+.spot { position: relative; }
+.spot::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity var(--dur-2);
+  background: radial-gradient(500px circle at var(--sx, 50%) var(--sy, 50%), rgb(226 201 154 / .16), transparent 45%); }
+.spot:hover::after { opacity: 1; }
+
+/* ── Появление: варианты и задержки ─────────────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  .js .reveal { transition-delay: calc(var(--stagger, 0) * 80ms); }
+  .js .reveal--left { transform: translateX(-28px); }
+  .js .reveal--scale { transform: scale(.94); }
+  .js .reveal--left.is-in, .js .reveal--scale.is-in { transform: none; }
+}
+
+/* ── Тёмная секция на всю ширину внутри обычной страницы ────────────────── */
+.band { padding-block: var(--section-y); }
+.page-head--scene { padding-block: clamp(36px, 6vw, 84px) clamp(32px, 5vw, 64px); }
+.page-head--scene .crumbs a, .page-head--scene .crumbs { color: var(--c-on-primary-2); }
+.page-head--scene .crumbs a:hover { color: var(--c-gold-light); }
+.page-head--scene .lead { color: var(--c-on-primary-2); }
+.page-head--scene img { filter: drop-shadow(0 26px 30px rgb(10 2 5 / .55)); }
+
+/* подвал — тёмно-бордовый */
+.site-footer { background: var(--g-wine); color: var(--c-on-primary); }
+.site-footer .muted, .site-footer .req, .site-footer .footer-bottom { color: var(--c-on-primary-2); }
+.site-footer h4 { color: var(--c-gold-light); }
+.site-footer a { color: var(--c-on-primary); }
+.site-footer a:hover { color: var(--c-gold-light); }
+.site-footer .footer-bottom { border-top-color: rgb(226 201 154 / .18); }
+
+@media (prefers-reduced-motion: reduce) {
+  .gold-text, .gold-rule, .scene .price .amount, .btn--shine::after, .stage .orbit, .stage .obj img, .stage .spark,
+  .scene > .scene-glow, .hero-x .chip i, .scroll-cue span::after { animation: none !important; }
+  .split .w > span, .fade-up { animation: none; transform: none; opacity: 1; }
+  .stage-inner, [data-tilt] { transform: none !important; }
+}
+
+/* мобильное меню — бордовая сцена */
+.site-header--scene .menu-panel { background: var(--g-wine); color: var(--c-on-primary); }
+.site-header--scene .menu-links a { color: var(--c-on-primary); border-bottom-color: rgb(226 201 154 / .16); }
+.site-header--scene .menu-links a svg { color: var(--c-gold-light); }
+.site-header--scene .menu-contacts, .site-header--scene .menu-contacts a { color: var(--c-on-primary-2); }
+
+/* панель обращения: золотая кромка */
+.panel { box-shadow: inset 0 0 0 1px rgb(226 201 154 / .35), 0 40px 80px -40px rgb(42 14 22 / .7); background: var(--g-wine); }
+.panel .btn--gold { box-shadow: 0 10px 30px -10px rgb(196 164 119 / .6); }
+
+/* шапка на узких экранах */
+@media (max-width: 480px) {
+  .logo img { height: 32px; }
+  .header-actions { gap: 0; }
+  .header-search { display: none; }
+}
+@media (max-width: 360px) { .logo img { height: 27px; } }
+.cta-row { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+@media (max-width: 560px) { .cta-row { grid-template-columns: 1fr; } }
+
+/* ── Исправления после просмотра ────────────────────────────────────────── */
+/* золотой текст внутри анимированного заголовка: градиент на каждом слове */
+.split .gold-text { background: none; animation: none; color: inherit; }
+.split .gold-text .w > span {
+  background: var(--g-gold); background-size: 250% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: wordUp .9s var(--ease-out) forwards, goldShine 7s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 70ms + 120ms), 1.2s;
+}
+/* подпись под цифрой — только прямой потомок, а не сама цифра */
+.fact span { color: inherit; font-size: inherit; }
+.fact > span { color: var(--c-on-primary-2); font-size: var(--fs-14); }
+/* карточки цен: плотный тёмный фон, чтобы градиент рамки не просвечивал */
+.scene .price { background: linear-gradient(165deg, #4A1B27, #33111A) padding-box, linear-gradient(160deg, rgb(226 201 154 / .55), rgb(226 201 154 / .1)) border-box; }
+.scene .price--free { background: linear-gradient(160deg, #8E2A3B, #5A2232) padding-box, var(--g-gold-border) border-box; }
+/* строки карточек заполняются без пустых колонок */
+.grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+.grid--4 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+/* шапка плотнее */
+.site-header--scene { background: color-mix(in srgb, var(--c-wine-900) 93%, transparent); }
+
+/* сетка направлений: главная карточка крупная, ряды заполнены (13 карточек) */
+.svc-grid { display: grid; gap: var(--s-4); grid-template-columns: 1fr; }
+@media (min-width: 640px) { .svc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .svc-grid .service-card--hero { grid-column: span 2; } }
+@media (min-width: 960px) { .svc-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .svc-grid .service-card--hero { grid-column: span 3; } }
+@media (min-width: 1200px) { .svc-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } .svc-grid .service-card--hero { grid-column: span 2; grid-row: span 2; } }
+.service-card--hero { align-content: end; min-height: 260px; padding: var(--s-8); }
+.service-card--hero .art { position: absolute; right: -4%; top: -6%; width: min(62%, 320px); height: auto; margin: 0; opacity: .95; }
+.service-card--hero h3 { font-size: clamp(1.5rem, 1.1rem + 1.2vw, 2.25rem); max-width: 12ch; position: relative; }
+.service-card--hero p { font-size: var(--fs-18); max-width: 34ch; position: relative; }
+.service-card--hero .num { right: auto; left: var(--s-8); top: var(--s-8); }
+@media (min-width: 1200px) { .service-card--hero .art { width: 70%; top: -2%; right: -8%; } }
+@media (max-width: 639px) { .service-card--hero .art { position: static; width: 150px; } }
+
+/* кабинет */
+.cab-logout { display: inline-flex; align-items: center; gap: 10px; flex: none; min-height: 44px; padding: 0 16px; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--c-text-2); font: 500 var(--fs-14)/1 var(--font-sans); cursor: pointer; }
+.cab-logout svg { width: 18px; height: 18px; }
+.cab-logout:hover { color: var(--c-red); background: var(--c-surface-2); }
+.layout-aside aside .row { grid-template-columns: 1fr; }
+.layout-aside aside .row > div:last-child { justify-items: start !important; }
+.cab-nav a[aria-current="page"] { background: var(--g-wine); border-color: transparent; }
+.tile--alert { background: var(--g-wine); }
+.cab-title h1 { background: var(--g-text); -webkit-background-clip: text; background-clip: text; color: transparent; }

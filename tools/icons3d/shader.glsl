@@ -242,6 +242,9 @@ void main() {
     float occ = 0.;
     for (int i = 0; i < 4; i++) { float hh = 0.06 + 0.12 * float(i); occ += max(0., hh - map(pp + vec3(0, hh, 0)).x) / hh; }
     float a = clamp((1. - sh) * 0.32 + occ * 0.16, 0., 0.6);
+    // тень плавно затухает к краям кадра — без видимого прямоугольника
+    a *= 1. - smoothstep(0.9, 1.75, length(pp.xz));
+    a *= 1. - smoothstep(0.32, 0.48, max(abs(uv.x), abs(uv.y)));
     vec3 sc = vec3(0.20, 0.08, 0.10);
     frag = vec4(sc * a, a);
     return;

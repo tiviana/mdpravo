@@ -125,7 +125,7 @@ export function layout(ctx, o) {
 <meta name="description" content="${o.description || ''}">
 <link rel="canonical" href="${canonical}">
 <meta name="robots" content="${robots}">
-<meta name="theme-color" content="#542531">
+<meta name="theme-color" content="#2A0E16">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ru_RU">
 <meta property="og:site_name" content="${company.name}">
@@ -144,6 +144,7 @@ export function layout(ctx, o) {
 <link rel="preload" href="/fonts/unbounded.woff" as="font" type="font/woff" crossorigin>
 <link rel="stylesheet" href="/css/tokens.css?v=${ASSET_V}">
 <link rel="stylesheet" href="/css/app.css?v=${ASSET_V}">
+<link rel="stylesheet" href="/css/scene.css?v=${ASSET_V}">
 <script src="/js/app.js?v=${ASSET_V}" defer></script>
 ${metrika}
 ${o.home ? html`<script type="application/ld+json">${jsonScript(ORG_LD)}</script>` : ''}
@@ -151,14 +152,14 @@ ${(o.jsonld || []).map((j) => html`<script type="application/ld+json">${jsonScri
 </head>
 <body>
 <a class="skip" href="#main">К содержанию</a>
-<header class="site-header" data-header>
+<header class="site-header site-header--scene" data-header>
   <div class="wrap header-row">
-    <a class="logo" href="/" aria-label="${company.name} — на главную"><img src="/brand/logo-horizontal.svg" width="240" height="40" alt="${company.name}"></a>
+    <a class="logo" href="/" aria-label="${company.name} — на главную"><img class="logo-dark" src="/brand/logo-horizontal.svg" width="240" height="40" alt="${company.name}"><img class="logo-light" src="/brand/logo-horizontal-inverse.svg" width="240" height="40" alt="" aria-hidden="true"></a>
     <nav class="nav" aria-label="Основное меню">
       ${NAV.map(([href, label]) => html`<a href="${href}" ${active(href)}>${label}</a>`)}
     </nav>
     <div class="header-actions">
-      <a class="icon-btn" href="/knowledge/search/" aria-label="Поиск">${icon('search')}</a>
+      <a class="icon-btn header-search" href="/knowledge/search/" aria-label="Поиск">${icon('search')}</a>
       <a class="icon-btn" href="${user ? (isStaffUser(user) ? '/staff/' : '/cabinet/') : '/login/'}" aria-label="${user ? 'Личный кабинет' : 'Войти в личный кабинет'}">${icon('user')}${unread ? html`<span class="dot" aria-hidden="true"></span>` : ''}</a>
       <a class="btn btn--primary btn--sm header-cta" href="/#contact">Получить консультацию</a>
       <details class="menu">
@@ -167,6 +168,7 @@ ${(o.jsonld || []).map((j) => html`<script type="application/ld+json">${jsonScri
           <nav class="menu-links" aria-label="Мобильное меню">
             ${NAV.map(([href, label]) => html`<a href="${href}">${label}${icon('arrow')}</a>`)}
             <a href="/process/">Как мы работаем${icon('arrow')}</a>
+            <a href="/knowledge/search/">Поиск${icon('search')}</a>
             <a href="${user ? '/cabinet/' : '/login/'}">${user ? 'Личный кабинет' : 'Войти'}${icon('arrow')}</a>
           </nav>
           <a class="btn btn--primary" href="/#contact">Получить консультацию</a>
@@ -199,7 +201,7 @@ function footer() {
   <div class="wrap">
     <div class="footer-grid">
       <div class="stack">
-        <img src="/brand/logo-horizontal.svg" width="240" height="40" alt="${company.name}" style="height:40px;width:auto">
+        <img src="/brand/logo-horizontal-inverse.svg" width="240" height="40" alt="${company.name}" style="height:40px;width:auto">
         <p class="muted" style="max-width:36ch">${company.slogan}</p>
         <div class="req">
           <span>${company.legalName}</span>
@@ -245,14 +247,16 @@ function footer() {
 </footer>`;
 }
 
-export function pageHead({ crumbs: c, eyebrow, title, lead, art }) {
-  return html`<section class="wrap page-head ${art ? 'page-head--art' : ''}">
+export function pageHead({ crumbs: c, eyebrow, title, lead, art, scene = true }) {
+  const inner = html`<div class="wrap ${art ? 'page-head--art' : ''}">
   <div>
     ${c ? crumbs(c) : ''}
-    ${eyebrow ? html`<p class="eyebrow">${eyebrow}</p>` : ''}
-    <h1 ${eyebrow ? raw('style="margin-top:14px"') : ''}>${title}</h1>
-    ${lead ? html`<p class="lead">${lead}</p>` : ''}
+    ${eyebrow ? html`<p class="eyebrow fade-up" style="--d:.05s">${eyebrow}</p>` : ''}
+    <h1 data-split ${eyebrow ? raw('style="margin-top:14px"') : ''}>${title}</h1>
+    ${lead ? html`<p class="lead fade-up" style="--d:.45s">${lead}</p>` : ''}
   </div>
-  ${art ? html`<img src="${art}" alt="" width="220" height="220" loading="eager">` : ''}
-</section>`;
+  ${art ? html`<img src="${art}" alt="" width="220" height="220" loading="eager" data-parallax="0.06">` : ''}
+</div>`;
+  if (!scene) return html`<section class="page-head">${inner}</section>`;
+  return html`<section class="scene page-head page-head--scene"><span class="scene-glow scene-glow--gold" aria-hidden="true"></span>${inner}</section>`;
 }

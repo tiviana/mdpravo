@@ -12,7 +12,7 @@ export class Router {
       .map((seg) => {
         if (seg.startsWith(':')) {
           keys.push(seg.slice(1));
-          return '([a-z0-9][a-z0-9-]*)';
+          return '([A-Za-z0-9][A-Za-z0-9-]*)';
         }
         return seg.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       })

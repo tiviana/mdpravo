@@ -59,7 +59,7 @@ window.render = async (src, yaw, pitch, zoom, ground, glyph) => {
 };
 </script></body></html>"""
 
-VIEW = {"yaw": 0.62, "pitch": 0.42, "zoom": 3.7, "ground": -1.0}
+VIEW = {"yaw": 0.62, "pitch": 0.42, "zoom": 3.35, "ground": -1.0}
 OVERRIDES = {
     "criminal-law": {"yaw": 0.45},
     "step-1": {"yaw": 0.45},

@@ -57,3 +57,9 @@ export function ftsQuery(q) {
   if (!words.length) return null;
   return words.map((w) => `"${stem(w)}"*`).join(' AND ');
 }
+
+export function fileSize(bytes) {
+  if (bytes < 1024) return `${bytes} Б`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} КБ`;
+  return `${(bytes / 1048576).toFixed(1).replace('.', ',')} МБ`;
+}

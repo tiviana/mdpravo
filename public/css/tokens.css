@@ -3,7 +3,8 @@
  * Контраст по WCAG 2.2 проверяет tests/contrast.test.js.
  * Правило: акцент #C4A477 на светлом фоне — только декор (2.13:1);
  * золотой ТЕКСТ на светлом — --c-accent-ink (5.27:1). На бордовом акцент читается (5.29:1).
- * Бордовый — для заголовков и отдельных блоков, не сплошной фон страницы.
+ * Бордовый — для заголовков и крупных полос-сцен; основной фон чтения остаётся сливочным.
+ * Обновлено 29.10.2026: больше бордового, красного и золота, 3D и анимации (запрос владельца).
  */
 @font-face {
   font-family: "Unbounded";
@@ -41,8 +42,21 @@
   --c-danger:  #B42318;  --c-danger-bg:  #FBE9E7;
   --c-info:    #1F5BB8;  --c-info-bg:    #E7EEFA;
 
+  /* Тёмная бордовая сцена (hero, полосы-акценты). Золото на ней: 6.8–7.6:1, сливочный: 14.5–16.2:1 */
+  --c-wine-900: #2A0E16;
+  --c-wine-800: #3A1520;
+  --c-wine-700: #542531;
+  --c-red: #8E2A3B;          /* насыщенный винно-красный: 7.49:1 на фоне */
+  --c-gold-light: #E2C99A;
+  --c-gold-deep: #A8844F;
+
   /* Градиенты */
   --g-brand: linear-gradient(135deg, #542531 0%, #762F40 55%, #8A3A4C 100%);
+  --g-wine: radial-gradient(120% 90% at 85% 0%, #8E2A3B 0%, transparent 55%),
+            radial-gradient(90% 80% at 0% 100%, #542531 0%, transparent 60%),
+            linear-gradient(160deg, #3A1520 0%, #2A0E16 100%);
+  --g-gold: linear-gradient(100deg, #A8844F 0%, #E2C99A 28%, #C4A477 50%, #F1E0BC 70%, #A8844F 100%);
+  --g-gold-border: linear-gradient(135deg, #E2C99A, #A8844F 40%, #F1E0BC 60%, #C4A477);
   --g-brand-soft: linear-gradient(135deg, #F8F3EE 0%, #F1E3DA 100%);
   --g-accent-line: linear-gradient(90deg, #C4A477, #E2CBA2 50%, #C4A477);
   --g-text: linear-gradient(100deg, #542531 0%, #762F40 45%, #9C5A4A 100%);

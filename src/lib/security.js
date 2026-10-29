@@ -8,7 +8,8 @@ export function securityHeaders() {
   const csp = [
     "default-src 'self'",
     `script-src 'self'${metrika}`,
-    "style-src 'self'",
+    // inline-стили нужны для атрибутов style (задержки анимаций); скрипты — только свои
+    "style-src 'self' 'unsafe-inline'",
     `img-src 'self' data:${metrika}`,
     "font-src 'self'",
     `connect-src 'self'${metrika}`,
