@@ -23,6 +23,8 @@ export const config = {
   port: int(env.PORT, 3000),
   baseUrl: (env.BASE_URL || `http://localhost:${int(env.PORT, 3000)}`).replace(/\/$/, ''),
   trustProxy: env.TRUST_PROXY === '1',
+  // секрет для HMAC одноразовых кодов; в production обязателен
+  secret: env.SECRET_KEY || (isProd ? '' : 'dev-only-secret-not-for-production'),
   dbPath: env.DB_PATH || path.join(ROOT, 'data', isTest ? 'test.sqlite' : 'app.sqlite'),
   storageDir: env.STORAGE_DIR || path.join(ROOT, 'storage'),
   publicDir: path.join(ROOT, 'public'),
@@ -62,6 +64,7 @@ export function configProblems(c = config) {
   const p = [];
   if (!c.isProd) return p;
   if (!c.baseUrl.startsWith('https://')) p.push('BASE_URL должен начинаться с https://');
+  if (!c.secret || c.secret.length < 32) p.push('SECRET_KEY должен быть задан (не короче 32 символов)');
   if (c.payments.provider === 'test') p.push('PAYMENT_PROVIDER=test запрещён в production');
   if (c.payments.provider === 'yookassa' && (!c.payments.yookassa.shopId || !c.payments.yookassa.secretKey)) {
     p.push('Не заданы YOOKASSA_SHOP_ID / YOOKASSA_SECRET_KEY');
