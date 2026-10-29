@@ -1,0 +1,24 @@
+# /etc/systemd/system/mdpravo.service
+[Unit]
+Description=Мосдевелопмент Право — сайт и кабинет
+After=network.target
+
+[Service]
+Type=simple
+User=mdpravo
+Group=mdpravo
+WorkingDirectory=/opt/mdpravo/current
+EnvironmentFile=/etc/mdpravo/env
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning src/server.js
+Restart=on-failure
+RestartSec=3
+# Изоляция процесса
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/mdpravo
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

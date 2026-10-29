@@ -15,7 +15,7 @@
     "user:create": "node --disable-warning=ExperimentalWarning src/cli.js create-user",
     "content:check": "node --disable-warning=ExperimentalWarning src/cli.js check-content",
     "content:import": "node --disable-warning=ExperimentalWarning src/cli.js import-legacy",
-    "test": "NODE_ENV=test node --disable-warning=ExperimentalWarning --test --test-concurrency=1 tests/",
+    "test": "NODE_ENV=test node --disable-warning=ExperimentalWarning --test --test-concurrency=1 'tests/*.test.js'",
     "test:e2e": "python3 tests/e2e/responsive.py"
   }
 }
