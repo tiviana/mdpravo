@@ -1,11 +1,18 @@
 // Публичные страницы сайта.
 import { config } from '../config.js';
+import { legalTexts } from '../content/legal.js';
 import { company, faq, partnership, prices, pricesFootnote, process, team, values } from '../content/company.js';
-import { articleBySlug, articles, downloads, knowledgeSections, topicBySlug, topics, urgent } from '../content/knowledge.js';
-import { directionBySlug, directions, directionSteps, docsPrice, findTask } from '../content/services.js';
+import { articleBySlug, articles, downloadBySlug, downloads, knowledgeSections, topicBySlug, topics, urgent, urgentBySlug } from '../content/knowledge.js';
+import { directionBySlug, directions, directionSteps, docsPrice, findTask, taskSteps } from '../content/services.js';
 import { html, raw } from '../lib/html.js';
 import { requestForm } from './forms.js';
 import { alert, crumbs, csrfField, icon, layout, pageHead } from './ui.js';
+import {
+  articleContent, articleSlugsForDocument, contactContext, detentionCheckedAt, detentionServices, directionContent,
+  documentContent, documentSlugsForArticle, hubContent, officialGroups, officialServices, readingTime, taskContent,
+  urgentContent, urgentGroups,
+} from '../content/library.js';
+import { checkList, faqBlock, faqJsonLd, href, keyPoints, numberedSteps, sectionsBody, sourcesList } from './content.js';
 
 const S = ' — Мосдевелопмент Право';
 const home = ['Главная', '/'];
@@ -29,24 +36,35 @@ function articleList(list) {
 }
 
 function contactSection(ctx, opts = {}) {
+  // Заголовок и подсказка формы — как на старом сайте: по теме страницы, если она известна.
+  const c = contactContext(opts.context);
+  const values = { ...(opts.values || {}) };
+  if (c && !values.message) values.message = c.preset;
   return html`<section class="wrap section" id="contact">
   <div class="panel spot">
     <div class="stack-lg" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));align-items:start">
       <div class="stack">
-        <p class="eyebrow">Консультация</p>
-        <h2>Опишите ситуацию</h2>
-        <p>Первичная консультация — бесплатно. Расскажите коротко, что произошло: специалист разберётся, что действительно потребуется, и свяжется с вами.</p>
+        <p class="eyebrow">Связаться с нами</p>
+        <h2>${c ? c.heading : 'Опишите ситуацию — определим, с чего начать'}</h2>
+        <p>${c ? c.intro : 'Для первого обращения достаточно имени, телефона и нескольких предложений.'}</p>
         <div class="stack" style="gap:8px;margin-top:12px">
           ${company.phones.map((p) => html`<a href="tel:${p.tel}" style="font:600 1.25rem/1.3 var(--font-display);text-decoration:none">${p.display}</a>`)}
           <a href="mailto:${company.email}">${company.email}</a>
           <span class="muted">${company.messengers.map((m, i) => html`${i ? ' · ' : ''}<a href="${m.url}" rel="noopener" target="_blank">${m.name}</a>`)}</span>
         </div>
       </div>
-      <div>${requestForm(ctx, { ...opts, dark: true })}</div>
+      <div>${requestForm(ctx, { ...opts, values, dark: true })}</div>
     </div>
   </div>
 </section>`;
 }
+
+// Карточки статей на главной — подписи и тексты с главной старого сайта (components/HomePage.tsx).
+const HOME_ARTICLES = [
+  { href: '/knowledge/vyzvali-dlya-dachi-obyasneniy/', tag: 'Уголовное право', title: 'Что делать, если вас вызывают для дачи объяснений', text: 'Какие вопросы стоит выяснить заранее, что взять с собой и почему документы имеют значение.' },
+  { href: '/knowledge/topics/spory-s-gosorganami/', tag: 'Госорганы', title: 'Как обжаловать решение государственного органа', text: 'Сроки, последовательность действий и документы, которые стоит приложить к жалобе.' },
+  { href: '/knowledge/topics/vzyskanie-dolgov/', tag: 'Взыскание долгов', title: 'Как подготовиться к взысканию задолженности', text: 'Какие доказательства сохранить, как определить требования и с чего начать досудебную работу.' },
+];
 
 // ── Главная ────────────────────────────────────────────────────────────────
 export function homePage(ctx, formState = {}) {
@@ -58,10 +76,11 @@ export function homePage(ctx, formState = {}) {
     <div>
       <p class="eyebrow fade-up" style="--d:.05s">Мосдевелопмент Право · Москва</p>
       <h1 data-split>Защищаем интересы. <span class="gold-text">Формируем сильную правовую позицию.</span></h1>
-      <p class="lead fade-up" style="--d:.7s">Разбираем ситуацию, оцениваем риски и готовим заявления, жалобы и другие документы. Уголовно-правовые вопросы, споры с госорганами и гражданские дела.</p>
+      <p class="lead fade-up" style="--d:.7s">Анализируем ситуацию, оцениваем юридические риски и готовим правовую позицию, заявления, жалобы и другие необходимые документы.</p>
+      <p class="hero-sub fade-up" style="--d:.78s">Уголовно-правовые вопросы • Государственные органы • Споры • Документы</p>
       <div class="hero-actions fade-up" style="--d:.85s">
         <a class="btn btn--gold btn--shine" href="#contact">Получить консультацию ${icon('arrow')}</a>
-        <a class="btn btn--outline-gold" href="/knowledge/">Найти решение самостоятельно</a>
+        <a class="btn btn--outline-gold" href="/knowledge/">Разобраться самостоятельно</a>
       </div>
       <div class="hero-tags fade-up" style="--d:1s">
         <span class="chip chip--accent"><i></i>Первичная консультация — бесплатно</span>
@@ -99,9 +118,9 @@ export function homePage(ctx, formState = {}) {
       <div class="stack">
         <p class="eyebrow">Услуги</p>
         <h2 class="reveal">Основные <span class="gold-text">направления</span></h2>
-        <p>Сложные правовые ситуации, документы и выстраивание позиции.</p>
+        <p>Сфокусированы на сложных правовых ситуациях, документах и выстраивании позиции.</p>
       </div>
-      <a class="link-arrow" href="/directions/">Все направления ${icon('arrow')}</a>
+      <a class="link-arrow" href="/directions/">Все направления деятельности ${icon('arrow')}</a>
     </div>
     ${serviceCards(directions)}
   </div>
@@ -112,11 +131,12 @@ export function homePage(ctx, formState = {}) {
     <div class="stack">
       <p class="eyebrow">Как мы работаем</p>
       <h2 class="reveal">Понятный <span class="accent-title">порядок работы</span></h2>
-      <p>Не нужно заранее собирать идеальный комплект документов — разберёмся, что действительно потребуется.</p>
+      <p>На первом этапе достаточно кратко описать ситуацию. Не нужно заранее собирать идеальный комплект документов — разберёмся, что действительно потребуется.</p>
     </div>
-    <a class="link-arrow" href="/process/">Все этапы ${icon('arrow')}</a>
+    <a class="link-arrow" href="/process/">Все этапы работы ${icon('arrow')}</a>
   </div>
   <div class="steps steps--line">${process.map((s) => html`<div class="step reveal" data-tilt="6"><img src="${s.img}" alt="" width="88" height="88" loading="lazy"><h3>${s.title}</h3><p>${s.text}</p></div>`)}</div>
+  <div class="cta-inline reveal"><a class="btn btn--primary" href="#contact">Описать ситуацию ${icon('arrow')}</a><p class="muted">Для первого обращения достаточно контактов и нескольких предложений.</p></div>
 </section>
 
 <section class="scene band" id="prices">
@@ -128,16 +148,18 @@ export function homePage(ctx, formState = {}) {
       <div class="fact reveal"><b class="gold-text"><span data-count="${downloads.length}">${downloads.length}</span></b><span>образцов документов в базе знаний</span></div>
       <div class="fact reveal"><b class="gold-text">0 ₽</b><span>первичная консультация</span></div>
     </div>
-    <div class="section-head" style="margin:0"><p class="eyebrow">Стоимость</p><h2 class="reveal">Понятные <span class="gold-text">условия</span></h2><p>${pricesFootnote}</p></div>
+    <div class="section-head" style="margin:0"><p class="eyebrow">Стоимость</p><h2 class="reveal">Стоимость <span class="gold-text">услуг</span></h2><p>Понятные условия и индивидуальный подход к каждому обращению</p></div>
     ${priceGrid()}
+    <div class="cta-inline"><p>${pricesFootnote}</p><a class="btn btn--gold btn--shine" href="#contact">Получить бесплатную консультацию ${icon('arrow')}</a></div>
   </div>
 </section>
 
 <section class="wrap section">
   <div class="layout-aside">
     <div class="stack-lg">
-      <div class="section-head" style="margin:0"><p class="eyebrow">О компании</p><h2 class="reveal">Защищаем права <span class="accent-title">граждан и бизнеса</span></h2>
-      <p>Приоритет — уголовно-правовые вопросы, правовая позиция и обращения в МВД, Следственный комитет и прокуратуру. Работаем и с гражданскими, административными, трудовыми и имущественными вопросами.</p></div>
+      <div class="section-head" style="margin:0"><p class="eyebrow">О компании</p><h2 class="reveal">Защищаем права и законные интересы <span class="accent-title">граждан и бизнеса.</span></h2>
+      <p>Приоритетное направление — уголовно-правовые вопросы, подготовка правовой позиции и обращений в МВД, Следственный комитет и прокуратуру. Также работаем по гражданским, административным, трудовым и имущественным вопросам.</p></div>
+      <div class="section-head" style="margin:0"><p class="eyebrow">Команда</p><h2 class="h3">Руководство компании</h2></div>
       <div class="team">${team.map(personCard)}</div>
     </div>
     <div class="card aside-sticky gold-frame reveal" style="--frame-bg:#FBF6F0">
@@ -161,10 +183,8 @@ export function homePage(ctx, formState = {}) {
     <button class="btn btn--primary btn--sm" type="submit">Найти</button>
   </form>
   <div class="grid" style="margin-top:var(--s-6)">
-    ${['vyzvali-dlya-dachi-obyasneniy', 'obzhalovat-reshenie-gosorgana', 'vzyskat-dolg-po-raspiske'].map((s) => {
-      const a = articleBySlug.get(s);
-      const t = topicBySlug.get(a.topic);
-      return html`<a class="card reveal" href="${a.path}" data-tilt="5"><span class="eyebrow">${t?.title || 'Статья'}</span><h3>${a.title}</h3><p>${a.description}</p><span class="link-arrow more">Читать ${icon('arrow')}</span></a>`;
+    ${HOME_ARTICLES.map((x) => {
+      return html`<a class="card reveal" href="${x.href}" data-tilt="5"><span class="eyebrow">${x.tag}</span><h3>${x.title}</h3><p>${x.text}</p><span class="link-arrow more">Читать ${icon('arrow')}</span></a>`;
     })}
   </div>
 </section>
@@ -179,7 +199,7 @@ ${contactSection(ctx, formState)}
 <section class="wrap section--tight">
   <a class="card gold-frame cta-row" href="/partnership/" data-tilt="4" style="--frame-bg:#FBF6F0">
     <div class="stack" style="gap:6px"><p class="eyebrow">Профессиональное сотрудничество</p><h3>Партнёрство с юристами, адвокатами и нотариусами</h3></div>
-    <span class="link-arrow">Подробнее ${icon('arrow')}</span>
+    <span class="link-arrow">Подробнее о сотрудничестве ${icon('arrow')}</span>
   </a>
 </section>`;
   return layout(ctx, {
@@ -209,7 +229,7 @@ function priceGrid() {
     <h3>${p.title}</h3>
     <div class="amount">${p.price}</div>
     <p class="muted">${p.text}</p>
-    ${p.sub ? html`<ul>${p.sub.map((s) => html`<li><span>${s.title}</span><b>${s.price}</b></li>`)}</ul>` : ''}
+    ${p.sub ? html`<ul>${p.sub.map((s) => html`<li><span>${s.title}${s.text ? html`<small>${s.text}</small>` : ''}</span><b>${s.price}</b></li>`)}</ul>` : ''}
     ${p.note ? html`<p class="note">${p.note}</p>` : ''}
   </div>`)}</div>`;
 }
@@ -227,71 +247,9 @@ export function directionsPage(ctx) {
     title: 'Все направления' + S,
     description: 'Полный список юридических направлений: уголовно-правовые вопросы, споры с госорганами, недвижимость, долги, военное и цифровое право.',
     path: '/directions/',
-    body: html`${pageHead({ crumbs: [home, ['Юридические услуги', '/directions/']], eyebrow: 'Юридические услуги', title: 'Все направления', lead: 'Выберите направление — внутри конкретные задачи, порядок работы и материалы для самостоятельного разбора.' })}
+    body: html`${pageHead({ crumbs: [home, ['Юридические услуги', '/directions/']], eyebrow: 'Юридические услуги', title: 'Все направления', lead: 'Выберите вопрос, который хотите решить. В каждом направлении — ситуации, с которыми мы работаем, и варианты юридической помощи.' })}
 <section class="wrap section--tight">${serviceCards(directions)}</section>
-${contactSection(ctx)}`,
-  });
-}
-
-export function directionPage(ctx, d) {
-  const t = topics.filter((x) => d.topics.includes(x.slug));
-  const rel = t.flatMap((x) => x.articleSlugs).slice(0, 6).map((s) => articleBySlug.get(s)).filter(Boolean);
-  const ld = { '@context': 'https://schema.org', '@type': 'Service', name: d.title, description: d.description, provider: { '@id': `${config.baseUrl}/#organization` }, areaServed: 'RU' };
-  return layout(ctx, {
-    title: d.metaTitle,
-    description: d.description,
-    path: d.path,
-    jsonld: [ld],
-    body: html`${pageHead({ crumbs: [home, ['Юридические услуги', '/directions/'], [d.navTitle || d.title, d.path]], eyebrow: 'Направление', title: d.title, lead: d.description, art: d.img })}
-<section class="wrap section--tight">
-  <div class="steps">${directionSteps.map((s) => html`<div class="step reveal"><h3>${s.title}</h3><p>${s.text}</p></div>`)}</div>
-</section>
-${d.tasks.length ? html`<section class="wrap section--tight">
-  <div class="section-head"><p class="eyebrow">Выберите свою задачу</p><h2>Что можем подготовить</h2></div>
-  <ul class="list-links">${d.tasks.map((x) => html`<li><a href="${x.path}"><span>${x.title}<small>${x.description}</small></span>${icon('arrow')}</a></li>`)}</ul>
-</section>` : ''}
-<section class="wrap section--tight">
-  <div class="grid grid--2">
-    <div class="price"><p class="eyebrow">Стоимость</p><h3>Подготовка документов</h3><div class="amount">${docsPrice(d)}</div><p class="note">Окончательная стоимость и объём согласовываются до начала работы. Первичная консультация — бесплатно.</p></div>
-    ${t.length ? html`<div class="card"><p class="eyebrow">Материалы по направлению</p>${t.map((x) => html`<a class="link-arrow" href="${x.path}">${x.title} ${icon('arrow')}</a>`)}</div>` : ''}
-  </div>
-</section>
-${rel.length ? html`<section class="wrap section--tight"><div class="section-head"><h2>Полезно прочитать</h2></div>${articleList(rel)}</section>` : ''}
-${contactSection(ctx, { values: { topic: d.slug } })}`,
-  });
-}
-
-export function taskPage(ctx, d, t) {
-  const sibling = d.tasks.filter((x) => x.slug !== t.slug).slice(0, 5);
-  return layout(ctx, {
-    title: t.metaTitle,
-    description: t.description,
-    path: t.path,
-    body: html`${pageHead({ crumbs: [home, ['Юридические услуги', '/directions/'], [d.navTitle || d.title, d.path], [t.title, t.path]], eyebrow: d.navTitle || d.title, title: t.title, lead: t.description, art: d.img })}
-<section class="wrap section--tight">
-  <div class="layout-aside">
-    <div class="stack-lg">
-      <div class="steps">${directionSteps.map((s) => html`<div class="step"><h3>${s.title}</h3><p>${s.text}</p></div>`)}</div>
-      ${sibling.length ? html`<div class="stack"><h2 style="font-size:var(--fs-h3)">Похожие задачи</h2><ul class="list-links">${sibling.map((x) => html`<li><a href="${x.path}"><span>${x.title}</span>${icon('arrow')}</a></li>`)}</ul></div>` : ''}
-    </div>
-    <div class="price aside-sticky"><p class="eyebrow">Стоимость</p><div class="amount">${docsPrice(d)}</div><p class="muted">Подготовка документов. Точную сумму и сроки согласуем после знакомства с материалами.</p><a class="btn btn--primary btn--block" href="#contact">Описать ситуацию</a></div>
-  </div>
-</section>
-${contactSection(ctx, { values: { topic: d.slug } })}`,
-  });
-}
-
-// ── Срочные ситуации ───────────────────────────────────────────────────────
-export function urgentIndex(ctx) {
-  return layout(ctx, {
-    title: 'Что делать прямо сейчас' + S,
-    description: 'Короткие пошаговые алгоритмы для срочных юридических ситуаций: задержание, вызов в полицию, долг, увольнение, СИЗО и споры с госорганами.',
-    path: '/urgent/',
-    body: html`${pageHead({ crumbs: [home, ['Срочно', '/urgent/']], eyebrow: 'Срочные ситуации', title: 'Что делать прямо сейчас', lead: 'Короткие пошаговые алгоритмы: что проверить и сохранить в первые часы и дни.' })}
-<section class="wrap section--tight"><div class="grid">${urgent.map((u) => {
-      const d = directionBySlug.get(u.direction);
-      return html`<a class="card reveal" href="${u.path}"><img src="${d.img}" alt="" width="72" height="72" loading="lazy" style="width:72px;height:72px"><h3>${u.title}</h3><p>${u.description}</p><span class="link-arrow more">Открыть ${icon('arrow')}</span></a>`;
-    })}</div></section>
+${ctaBand('Не знаете, какое направление выбрать? Опишите свою ситуацию', 'Поможем определить подходящий порядок действий.')}
 ${contactSection(ctx)}`,
   });
 }
@@ -300,25 +258,6 @@ export function legacyBody(legacy, fallback) {
   if (legacy) return html`<div class="prose">${raw(legacy.html)}</div>`;
   return html`<div class="stack">${fallback ? html`<p class="lead" style="font-size:var(--fs-18)">${fallback}</p>` : ''}
     ${alert('info', 'Полный текст этого материала переносится со старой версии сайта. Если нужен разбор вашей ситуации прямо сейчас — опишите её в форме ниже.')}</div>`;
-}
-
-export function urgentPage(ctx, u, legacy) {
-  const d = directionBySlug.get(u.direction);
-  const t = topicBySlug.get(u.topic);
-  return layout(ctx, {
-    title: u.metaTitle,
-    description: u.description,
-    path: u.path,
-    body: html`${pageHead({ crumbs: [home, ['Срочно', '/urgent/'], [u.title, u.path]], eyebrow: 'Срочная ситуация', title: u.title, lead: u.description, art: d.img })}
-<section class="wrap section--tight"><div class="layout-aside">
-  <article>${legacyBody(legacy)}</article>
-  <aside class="stack aside-sticky">
-    <div class="card" style="background:var(--g-brand-soft)"><h3>Нужна помощь прямо сейчас?</h3><p>Позвоните или напишите — разберёмся, что делать.</p>${company.phones.map((p) => html`<a class="btn btn--primary btn--block" href="tel:${p.tel}">${icon('phone')}${p.display}</a>`)}</div>
-    ${t ? html`<a class="card" href="${t.path}"><p class="eyebrow">Материалы по теме</p><h3>${t.title}</h3><span class="link-arrow">Открыть ${icon('arrow')}</span></a>` : ''}
-  </aside>
-</div></section>
-${contactSection(ctx, { values: { topic: u.direction } })}`,
-  });
 }
 
 // ── База знаний ────────────────────────────────────────────────────────────
@@ -338,17 +277,19 @@ export function knowledgeIndex(ctx) {
 </section>
 <section class="wrap section--tight">
   <div class="grid grid--4">
-    <a class="card" href="/urgent/"><h3>Срочно</h3><p>Что делать прямо сейчас</p></a>
-    <a class="card" href="/knowledge/downloads/"><h3>Документы</h3><p>${downloads.length} образцов DOCX и PDF</p></a>
-    <a class="card" href="${knowledgeSections.calculators.path}"><h3>Калькуляторы</h3><p>Предварительные расчёты</p></a>
-    <a class="card" href="${knowledgeSections.services.path}"><h3>Госсервисы</h3><p>Официальные сервисы</p></a>
+    <a class="card" href="/urgent/"><h3>Что делать прямо сейчас</h3><p>Короткие пошаговые алгоритмы для срочных ситуаций.</p></a>
+    <a class="card" href="/knowledge/downloads/"><h3>Найти образец документа</h3><p>Жалобы, заявления, претензии и ходатайства.</p></a>
+    <a class="card" href="${knowledgeSections.calculators.path}"><h3>Рассчитать неустойку</h3><p>Предварительный расчёт договорной неустойки.</p></a>
+    <a class="card" href="${knowledgeSections.services.path}"><h3>Проверить сведения на госсайтах</h3><p>Найти судебное дело, проверить компанию, имущество или долг.</p></a>
   </div>
 </section>
 <section class="wrap section--tight" id="materials">
-  <div class="section-head section-head--row"><div class="stack"><p class="eyebrow">Направления</p><h2>Темы</h2></div><a class="link-arrow" href="/knowledge/topics/">Все темы ${icon('arrow')}</a></div>
+  <div class="section-head section-head--row"><div class="stack"><p class="eyebrow">Направления</p><h2>Начните с нужного направления</h2><p>Материалы по основным правовым направлениям.</p></div><a class="link-arrow" href="/knowledge/topics/">Посмотреть все направления ${icon('arrow')}</a></div>
   <div class="grid">${topics.map((t) => html`<a class="card reveal" href="${t.path}"><h3>${t.title}</h3><p>${t.description}</p><span class="muted">${t.articleSlugs.length} материалов</span></a>`)}</div>
 </section>
-<section class="wrap section--tight"><div class="section-head"><h2>Новое и полезное</h2></div>${articleList(articles.slice(-8).reverse())}</section>`,
+<section class="wrap section--tight"><div class="section-head"><p class="eyebrow">Материалы</p><h2>Статьи и пошаговые разборы</h2><p>Популярные статьи и практические разборы.</p></div>${articleList(articles.slice(0, 8))}</section>
+${ctaBand('Не нашли точного ответа?', 'Опишите вопрос в форме обращения — поможем с первичным анализом и дальнейшими действиями.')}
+${contactSection(ctx)}`,
   });
 }
 
@@ -357,66 +298,8 @@ export function topicsIndex(ctx) {
     title: 'Направления' + S,
     description: 'Все направления базы знаний: статьи, инструкции, образцы документов и практические материалы по основным правовым вопросам.',
     path: '/knowledge/topics/',
-    body: html`${pageHead({ crumbs: [home, ['База знаний', '/knowledge/'], ['Темы', '/knowledge/topics/']], title: 'Темы базы знаний' })}
-<section class="wrap section--tight"><div class="grid">${topics.map((t) => html`<a class="card" href="${t.path}"><h3>${t.title}</h3><p>${t.description}</p></a>`)}</div></section>`,
-  });
-}
-
-export function topicPage(ctx, t) {
-  const list = t.articleSlugs.map((s) => articleBySlug.get(s)).filter(Boolean);
-  const svc = t.serviceRefs.map((r) => {
-    const [dir, slug] = r.split('/');
-    return findTask(dir, slug);
-  }).filter(Boolean);
-  const dl = downloads.filter((d) => d.topic === t.slug);
-  return layout(ctx, {
-    title: t.metaTitle,
-    description: t.description,
-    path: t.path,
-    body: html`${pageHead({ crumbs: [home, ['База знаний', '/knowledge/'], ['Темы', '/knowledge/topics/'], [t.title, t.path]], eyebrow: 'Тема', title: t.title, lead: t.description })}
-<section class="wrap section--tight"><div class="layout-aside">
-  <div class="stack-lg">
-    <div class="stack"><h2 style="font-size:var(--fs-h3)">Статьи и инструкции</h2>${articleList(list)}</div>
-    ${dl.length ? html`<div class="stack"><h2 style="font-size:var(--fs-h3)">Образцы документов</h2>${articleList(dl)}</div>` : ''}
-  </div>
-  <aside class="stack aside-sticky">
-    ${svc.length ? html`<div class="card"><p class="eyebrow">Поможем подготовить</p>${svc.map((s) => html`<a class="link-arrow" href="${s.path}">${s.title} ${icon('arrow')}</a>`)}</div>` : ''}
-    <div class="card" style="background:var(--g-brand-soft)"><h3>Не нашли ответ?</h3><p>Опишите ситуацию — первичная консультация бесплатно.</p><a class="btn btn--primary" href="#contact">Описать ситуацию</a></div>
-  </aside>
-</div></section>
-${contactSection(ctx)}`,
-  });
-}
-
-export function articlePage(ctx, a, legacy, bookmarked) {
-  const t = a.topic ? topicBySlug.get(a.topic) : null;
-  const more = t ? t.articleSlugs.filter((s) => s !== a.slug).slice(0, 5).map((s) => articleBySlug.get(s)) : [];
-  const ld = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: a.title,
-    description: a.description,
-    inLanguage: 'ru-RU',
-    mainEntityOfPage: config.baseUrl + a.path,
-    publisher: { '@id': `${config.baseUrl}/#organization` },
-  };
-  return layout(ctx, {
-    title: a.metaTitle,
-    description: a.description,
-    path: a.path,
-    jsonld: [ld],
-    body: html`${pageHead({ crumbs: [home, ['База знаний', '/knowledge/'], ...(t ? [[t.title, t.path]] : []), [a.title, a.path]], eyebrow: t?.title || 'База знаний', title: a.title, lead: a.description })}
-<section class="wrap section--tight"><div class="layout-aside">
-  <article class="stack">${legacy ? legacyBody(legacy) : legacyBody(null)}
-    <p class="muted" style="font-size:var(--fs-14)">Материалы базы знаний носят информационный характер и не заменяют анализ конкретной ситуации.</p>
-  </article>
-  <aside class="stack aside-sticky">
-    ${bookmarkButton(ctx, a.path, a.title, bookmarked)}
-    <div class="card" style="background:var(--g-brand-soft)"><h3>Разберём вашу ситуацию</h3><p>Первичная консультация — бесплатно.</p><a class="btn btn--primary" href="#contact">Описать ситуацию</a></div>
-    ${more.length ? html`<div class="card"><p class="eyebrow">Ещё по теме</p>${more.map((m) => html`<a href="${m.path}">${m.title}</a>`)}</div>` : ''}
-  </aside>
-</div></section>
-${contactSection(ctx)}`,
+    body: html`${pageHead({ crumbs: [home, ['База знаний', '/knowledge/'], ['Темы', '/knowledge/topics/']], eyebrow: 'База знаний / Направления', title: 'Направления', lead: 'Выберите правовую тему, чтобы посмотреть инструкции, статьи и документы по вашей ситуации.' })}
+<section class="wrap section--tight"><div class="grid">${topics.map((t) => html`<a class="card reveal" href="${t.path}" aria-label="Открыть направление «${t.title}»"><h3>${t.title}</h3><p>${t.description}</p><span class="link-arrow more">Открыть направление ${icon('arrow')}</span></a>`)}</div></section>`,
   });
 }
 
@@ -427,41 +310,15 @@ export function bookmarkButton(ctx, path, title, bookmarked) {
     <button class="btn ${bookmarked ? 'btn--primary' : 'btn--ghost'} btn--block" type="submit">${icon('bookmark')}${bookmarked ? 'Сохранено в закладках' : 'Сохранить в закладки'}</button></form>`;
 }
 
-export function downloadsIndex(ctx) {
-  return layout(ctx, {
-    title: 'Шаблоны юридических документов' + S,
-    description: 'Юридические документы: заявления, жалобы, претензии, ходатайства и другие шаблоны с удобным поиском и заполнением.',
-    path: '/knowledge/downloads/',
-    body: html`${pageHead({ crumbs: [home, ['База знаний', '/knowledge/'], ['Документы', '/knowledge/downloads/']], eyebrow: 'Документы', title: 'Юридические документы', lead: 'Образцы заявлений, жалоб, претензий и ходатайств в DOCX и PDF. Перед подачей адаптируйте под свою ситуацию.' })}
-<section class="wrap section--tight">${topics.filter((t) => downloads.some((d) => d.topic === t.slug)).map((t) => html`<div class="stack" style="margin-bottom:var(--s-10)"><h2 style="font-size:var(--fs-h3)">${t.title}</h2>${articleList(downloads.filter((d) => d.topic === t.slug))}</div>`)}</section>`,
-  });
-}
-
-export function downloadPage(ctx, d, legacy, bookmarked, files) {
-  const t = topicBySlug.get(d.topic);
-  return layout(ctx, {
-    title: d.metaTitle,
-    description: d.metaDescription,
-    path: d.path,
-    body: html`${pageHead({ crumbs: [home, ['База знаний', '/knowledge/'], ['Документы', '/knowledge/downloads/'], [d.title, d.path]], eyebrow: 'Образец документа', title: d.title, lead: d.description, art: '/img/icons3d/value-documents.webp' })}
-<section class="wrap section--tight"><div class="layout-aside">
-  <article class="stack">
-    <div class="hero-actions" style="margin:0">
-      ${files.docx ? html`<a class="btn btn--primary" href="${d.docx}" download>${icon('download')}Скачать DOCX</a>` : ''}
-      ${files.pdf ? html`<a class="btn btn--ghost" href="${d.pdf}" download>${icon('download')}Скачать PDF</a>` : ''}
-    </div>
-    ${!files.docx && !files.pdf ? alert('info', 'Файлы образца переносятся со старой версии сайта.') : ''}
-    ${legacy ? legacyBody(legacy) : ''}
-  </article>
-  <aside class="stack aside-sticky">
-    ${bookmarkButton(ctx, d.path, d.title, bookmarked)}
-    ${t ? html`<a class="card" href="${t.path}"><p class="eyebrow">Тема</p><h3>${t.title}</h3></a>` : ''}
-    <div class="card" style="background:var(--g-brand-soft)"><h3>Подготовим документ за вас</h3><p>С учётом обстоятельств дела — от 10 000 ₽.</p><a class="btn btn--primary" href="#contact">Заказать</a></div>
-  </aside>
-</div></section>
-${contactSection(ctx)}`,
-  });
-}
+// Правовая основа расчётов — со страницы /knowledge/calculators/ старого сайта.
+const CALC_BASIS = [
+  ['Статья 395 ГК РФ', 'Проценты определяются с учётом ключевой ставки, действовавшей в соответствующие периоды.'],
+  ['Статья 236 ТК РФ', 'Минимальная компенсация за задержку выплат привязана к 1/150 действующей ключевой ставки.'],
+  ['Статья 333.19 НК РФ', 'Шкала государственной пошлины по имущественным требованиям в судах общей юрисдикции и у мировых судей.'],
+  ['Статья 333.21 НК РФ', 'Шкала государственной пошлины по имущественным требованиям в арбитражных судах.'],
+  ['Статьи 330 и 333 ГК РФ', 'Общие правила о неустойке и возможности её уменьшения судом при явной несоразмерности.'],
+  ['Ключевая ставка Банка России', 'Перед расчётом процентов и трудовой компенсации проверьте даты изменения ставки.'],
+];
 
 // Калькулятор договорной неустойки — не зависит от внешних ставок
 export function calculatorsPage(ctx, calc) {
@@ -492,7 +349,12 @@ export function calculatorsPage(ctx, calc) {
     <a class="link-arrow" href="/knowledge/kak-rasschitat-protsenty-395-gk/">Проценты по ст. 395 ГК ${icon('arrow')}</a>
     <a class="link-arrow" href="/knowledge/kompensatsiya-za-zaderzhku-zarplaty-236-tk/">Компенсация по ст. 236 ТК ${icon('arrow')}</a>
   </aside>
-</div></section>`,
+</div></section>
+<section class="wrap section--tight"><details class="card basis"><summary><h2 class="h3">Правовая основа расчётов</h2></summary>
+  <ol class="num-steps">${CALC_BASIS.map(([t, d], i) => html`<li><span class="num-steps__n">${String(i + 1).padStart(2, '0')}</span><div><h3>${t}</h3><p>${d}</p></div></li>`)}</ol>
+</details></section>
+${ctaBand('Нужна проверка расчёта для иска?', 'Поможем проверить сумму и основание требования по документам.')}
+${contactSection(ctx, { context: 'vzyskanie-dolgov' })}`,
   });
 }
 
@@ -519,17 +381,6 @@ export function calcPenalty(q) {
   return out;
 }
 
-export function sectionPage(ctx, key, legacy) {
-  const s = knowledgeSections[key];
-  return layout(ctx, {
-    title: s.metaTitle,
-    description: s.description,
-    path: s.path,
-    body: html`${pageHead({ crumbs: [home, ['База знаний', '/knowledge/'], [s.title, s.path]], eyebrow: 'База знаний', title: s.title, lead: s.description })}
-<section class="wrap section--tight">${legacyBody(legacy)}</section>`,
-  });
-}
-
 export function searchPage(ctx, q, results) {
   return layout(ctx, {
     title: (q ? `Поиск: ${q}` : 'Умный поиск') + S,
@@ -553,19 +404,362 @@ export function searchPage(ctx, q, results) {
 }
 
 // ── О компании, команда, процесс, цены, FAQ, контакты, партнёрство ───────────
+export function directionPage(ctx, d) {
+  const c = directionContent(d.slug) || {};
+  const t = topics.filter((x) => d.topics.includes(x.slug));
+  const rel = t.flatMap((x) => x.articleSlugs).slice(0, 6).map((s) => articleBySlug.get(s)).filter(Boolean);
+  const ld = { '@context': 'https://schema.org', '@type': 'Service', name: d.title, description: d.description, provider: { '@id': `${config.baseUrl}/#organization` }, areaServed: 'RU' };
+  return layout(ctx, {
+    title: d.metaTitle,
+    description: d.description,
+    path: d.path,
+    jsonld: [ld],
+    body: html`${pageHead({ crumbs: [home, ['Юридические услуги', '/directions/'], [d.navTitle || d.title, d.path]], eyebrow: c.eyebrow || 'Направление', title: d.title, lead: d.description, art: d.img })}
+${c.intro ? html`<section class="wrap section--tight"><p class="lead-text reveal">${c.intro}</p></section>` : ''}
+<section class="wrap section--tight">
+  <div class="section-head"><p class="eyebrow">Как мы работаем</p><h2>Разбираем факты, документы и порядок действий</h2></div>
+  <div class="steps">${directionSteps.map((s) => html`<div class="step reveal"><h3>${s.title}</h3><p>${s.text}</p></div>`)}</div>
+</section>
+${c.situations ? html`<section class="wrap section--tight"><div class="grid grid--2">
+  <div class="card reveal"><p class="eyebrow">Ситуации</p><h2 class="h3">С какими вопросами работаем</h2>${checkList(c.situations)}</div>
+  <div class="card reveal"><p class="eyebrow">Документы</p><h2 class="h3">Что можем подготовить</h2>${checkList(c.documents)}</div>
+</div></section>` : ''}
+${d.tasks.length ? html`<section class="wrap section--tight">
+  <div class="section-head"><p class="eyebrow">Частые задачи</p><h2>Выберите свою задачу</h2></div>
+  <ul class="list-links">${d.tasks.map((x) => html`<li><a href="${x.path}"><span>${x.title}<small>${x.description}</small></span>${icon('arrow')}</a></li>`)}</ul>
+</section>` : ''}
+<section class="wrap section--tight">
+  <div class="grid grid--2">
+    <div class="price"><p class="eyebrow">Стоимость</p><h3>Подготовка документов</h3><div class="amount">${docsPrice(d)}</div><p class="note">${pricesFootnote} Первичная консультация — бесплатно.</p></div>
+    ${t.length ? html`<div class="card"><p class="eyebrow">Материалы по направлению</p>${t.map((x) => html`<a class="link-arrow" href="${x.path}">${x.title} ${icon('arrow')}</a>`)}</div>` : ''}
+  </div>
+</section>
+${rel.length ? html`<section class="wrap section--tight"><div class="section-head section-head--row"><div class="stack"><p class="eyebrow">Полезное</p><h2>Материалы по этому направлению</h2></div><a class="link-arrow" href="/knowledge/">Вся база знаний ${icon('arrow')}</a></div>${articleList(rel)}</section>` : ''}
+${ctaBand('Нужна правовая позиция по вашей ситуации?', 'Опишите обстоятельства и имеющиеся документы. Начнём с первичного анализа и определим возможный порядок действий.')}
+${contactSection(ctx, { values: { topic: d.slug }, context: c.topic })}`,
+  });
+}
+
+function ctaBand(title, text) {
+  return html`<section class="wrap section--tight"><a class="card gold-frame cta-row" href="#contact" data-tilt="4" style="--frame-bg:#FBF6F0">
+    <div class="stack" style="gap:6px"><p class="eyebrow">Мосдевелопмент Право</p><h3>${title}</h3><p class="muted">${text}</p></div>
+    <span class="link-arrow">Описать ситуацию ${icon('arrow')}</span>
+  </a></section>`;
+}
+
+export function taskPage(ctx, d, t) {
+  const c = taskContent(d.slug, t.slug) || {};
+  const dc = directionContent(d.slug) || {};
+  const sibling = d.tasks.filter((x) => x.slug !== t.slug).slice(0, 5);
+  const mats = topics.filter((x) => d.topics.includes(x.slug)).flatMap((x) => x.articleSlugs).slice(0, 4).map((s) => articleBySlug.get(s)).filter(Boolean);
+  return layout(ctx, {
+    title: t.metaTitle,
+    description: t.description,
+    path: t.path,
+    body: html`${pageHead({ crumbs: [home, ['Юридические услуги', '/directions/'], [d.navTitle || d.title, d.path], [t.title, t.path]], eyebrow: `${d.navTitle || d.title} · конкретная задача`, title: t.title, lead: t.description, art: d.img })}
+<section class="wrap section--tight">
+  <div class="layout-aside">
+    <div class="stack-lg">
+      ${c.intro ? html`<div class="stack"><p class="eyebrow">Задача</p><h2 class="h3">Сначала разбираем факты и документы</h2><p class="lead-text">${c.intro}</p></div>` : ''}
+      <div class="steps">${taskSteps.map((s) => html`<div class="step"><h3>${s.title}</h3><p>${s.text}</p></div>`)}</div>
+      ${c.situations ? html`<div class="grid grid--2">
+        <div class="card"><p class="eyebrow">Когда актуально</p><h2 class="h3">С какими обстоятельствами работаем</h2>${checkList(c.situations)}</div>
+        <div class="card"><p class="eyebrow">Результат работы</p><h2 class="h3">Какие документы можно подготовить</h2>${checkList(c.documents)}</div>
+      </div>` : ''}
+      ${mats.length ? html`<div class="stack"><p class="eyebrow">База знаний</p><h2 class="h3">Материалы по этой теме</h2>${articleList(mats)}</div>` : ''}
+      ${sibling.length ? html`<div class="stack"><h2 class="h3">Похожие задачи</h2><ul class="list-links">${sibling.map((x) => html`<li><a href="${x.path}"><span>${x.title}</span>${icon('arrow')}</a></li>`)}</ul></div>` : ''}
+    </div>
+    <div class="price aside-sticky"><p class="eyebrow">Стоимость</p><div class="amount">${docsPrice(d)}</div><p class="muted">Подготовка документов. ${pricesFootnote}</p><a class="btn btn--primary btn--block" href="#contact">Описать ситуацию</a><a class="link-arrow" href="${d.path}">Вернуться к направлению ${icon('arrow')}</a></div>
+  </div>
+</section>
+${ctaBand('Нужно подготовить позицию или документ?', 'Опишите обстоятельства и приложите имеющиеся материалы. Определим, какие документы и последовательность действий подходят вашей ситуации.')}
+${contactSection(ctx, { values: { topic: d.slug }, context: dc.topic })}`,
+  });
+}
+
+// ── Срочные ситуации ───────────────────────────────────────────────────────
+export function urgentIndex(ctx) {
+  return layout(ctx, {
+    title: 'Что делать прямо сейчас' + S,
+    description: 'Короткие пошаговые алгоритмы для срочных юридических ситуаций: задержание, вызов в полицию, долг, увольнение, СИЗО и споры с госорганами.',
+    path: '/urgent/',
+    body: html`${pageHead({ crumbs: [home, ['Срочно', '/urgent/']], eyebrow: 'Практический навигатор', title: 'Что делать прямо сейчас', lead: 'Короткие алгоритмы для ситуаций, когда важно сначала не потерять документы, сроки и доказательства, а уже потом выбирать дальнейший способ защиты.' })}
+${urgentGroups.map((g) => {
+      const list = g.slugs.map((s) => urgentBySlug.get(s)).filter(Boolean);
+      return html`<section class="wrap section--tight">
+  <div class="section-head"><p class="eyebrow">Ситуация</p><h2>${g.title}</h2><p>${g.description}</p></div>
+  <div class="grid">${list.map((u) => {
+        const d = directionBySlug.get(u.direction);
+        const n = urgent.indexOf(u) + 1;
+        return html`<a class="card reveal" href="${u.path}"><img src="${d.img}" alt="" width="72" height="72" loading="lazy" style="width:72px;height:72px"><span class="muted" style="font-size:var(--fs-14)">${String(n).padStart(2, '0')} · быстрый алгоритм</span><h3>${u.title}</h3><p>${u.description}</p><span class="link-arrow more">Открыть инструкцию ${icon('arrow')}</span></a>`;
+      })}</div>
+</section>`;
+    })}
+${contactSection(ctx)}`,
+  });
+}
+
+export function urgentPage(ctx, u, legacy) {
+  const d = directionBySlug.get(u.direction);
+  const t = topicBySlug.get(u.topic);
+  const g = urgentContent(u.slug);
+  return layout(ctx, {
+    title: u.metaTitle,
+    description: u.description,
+    path: u.path,
+    body: html`${pageHead({ crumbs: [home, ['Срочно', '/urgent/'], [u.title, u.path]], eyebrow: 'Что делать прямо сейчас', title: u.title, lead: u.description, art: d.img })}
+<section class="wrap section--tight"><div class="layout-aside">
+  <article class="stack-lg">
+    ${g ? numberedSteps(g.steps) : legacyBody(legacy)}
+    ${g ? html`<div class="grid grid--2">
+      <div class="card card--warn"><h3>Чего лучше не делать</h3>${checkList(g.avoid, 'checklist--no')}</div>
+      <div class="card"><h3>Что сохранить</h3>${checkList(g.documents)}</div>
+    </div>` : ''}
+    <p class="muted" style="font-size:var(--fs-14)">Алгоритм носит общий информационный характер. Процессуальные права, сроки и порядок действий зависят от статуса, документов и фактических обстоятельств конкретной ситуации.</p>
+  </article>
+  <aside class="stack aside-sticky">
+    <div class="card" style="background:var(--g-brand-soft)"><h3>Нужна помощь прямо сейчас?</h3><p>Позвоните или напишите — разберёмся, что делать.</p>${company.phones.map((p) => html`<a class="btn btn--primary btn--block" href="tel:${p.tel}">${icon('phone')}${p.display}</a>`)}</div>
+    <a class="card" href="${d.path}"><p class="eyebrow">Связанное направление</p><h3>${d.navTitle || d.title}</h3><span class="link-arrow">Открыть страницу услуги ${icon('arrow')}</span></a>
+    ${t ? html`<a class="card" href="${t.path}"><p class="eyebrow">Материалы по теме</p><h3>${t.title}</h3><span class="link-arrow">Открыть ${icon('arrow')}</span></a>` : ''}
+    <a class="link-arrow" href="/urgent/">Все быстрые алгоритмы ${icon('arrow')}</a>
+  </aside>
+</div></section>
+${g?.nextLinks?.length ? html`<section class="wrap section--tight">
+  <div class="section-head"><p class="eyebrow">Что дальше по этой же ситуации</p><h2>Продолжайте только по фактической стадии</h2></div>
+  <div class="grid">${g.nextLinks.map((l) => html`<a class="card reveal" href="${href(l.href)}"><span class="muted" style="font-size:var(--fs-14)">Профильное продолжение</span><h3>${l.title}</h3><p>${l.description}</p><span class="link-arrow more">Открыть ${icon('arrow')}</span></a>`)}</div>
+</section>` : ''}
+${contactSection(ctx, { values: { topic: u.direction }, context: u.topic })}`,
+  });
+}
+
+export function topicPage(ctx, t) {
+  const h = hubContent(t.slug) || {};
+  const list = t.articleSlugs.map((s) => articleBySlug.get(s)).filter(Boolean);
+  const svc = t.serviceRefs.map((r) => {
+    const [dir, slug] = r.split('/');
+    return findTask(dir, slug);
+  }).filter(Boolean);
+  const dl = downloads.filter((d) => d.topic === t.slug);
+  const related = (h.relatedHubSlugs || []).map((s) => topicBySlug.get(s)).filter(Boolean);
+  const faqs = h.faqs || [];
+  return layout(ctx, {
+    title: t.metaTitle,
+    description: t.description,
+    path: t.path,
+    jsonld: faqs.length ? [faqJsonLd(faqs)] : [],
+    body: html`${pageHead({ crumbs: [home, ['База знаний', '/knowledge/'], ['Темы', '/knowledge/topics/'], [t.title, t.path]], eyebrow: 'Тема', title: t.title, lead: t.description })}
+<section class="wrap section--tight"><div class="layout-aside">
+  <div class="stack-lg">
+    ${h.intro ? html`<p class="lead-text">${h.intro}</p>` : ''}
+    ${h.tasks?.length ? html`<div class="stack"><p class="eyebrow">С чего начать</p>
+      <div class="grid grid--2">${h.tasks.map((task, i) => {
+        const link = h.taskLinks?.[i];
+        const inner = html`<span class="num">${String(i + 1).padStart(2, '0')}</span><h3>${task}</h3>`;
+        return link ? html`<a class="card task-card reveal" href="${href(link)}">${inner}<span class="link-arrow more">Подробнее ${icon('arrow')}</span></a>` : html`<div class="card task-card">${inner}</div>`;
+      })}</div></div>` : ''}
+    <div class="stack"><h2 class="h3">Статьи и инструкции</h2>${articleList(list)}</div>
+    ${dl.length ? html`<div class="stack"><h2 class="h3">Образцы документов</h2>${articleList(dl)}</div>` : ''}
+    ${t.slug === 'sizo-i-fsin' ? html`<a class="card gold-frame" href="/knowledge/sizo-fsin-services/" style="--frame-bg:#FBF6F0"><p class="eyebrow">Практический навигатор</p><h3>Письма, связь, деньги, передачи и помощь</h3><p>Отдельно собрали действующие сервисы и официальные каналы: Ф-Письмо, ФСИНЭТ, денежные переводы, справочник учреждений, запись в бюро передач, лекарства, интернет-магазины и правозащитные обращения.</p><span class="link-arrow">Открыть каталог сервисов ${icon('arrow')}</span></a>` : ''}
+    ${faqs.length ? html`<div class="stack"><p class="eyebrow">Коротко по теме</p><h2 class="h3">Частые вопросы</h2>${faqBlock(faqs)}</div>` : ''}
+    ${related.length ? html`<div class="stack"><h2 class="h3">Смотрите также</h2><div class="grid">${related.map((r) => html`<a class="card" href="${r.path}"><span class="muted" style="font-size:var(--fs-14)">Связанное направление</span><h3>${r.title}</h3><span class="link-arrow more">Перейти к разделу ${icon('arrow')}</span></a>`)}</div></div>` : ''}
+  </div>
+  <aside class="stack aside-sticky">
+    ${svc.length ? html`<div class="card"><p class="eyebrow">Страницы под вашу ситуацию</p>${svc.map((s) => html`<a class="link-arrow" href="${s.path}">${s.title} ${icon('arrow')}</a>`)}</div>` : ''}
+    <div class="card" style="background:var(--g-brand-soft)"><p class="eyebrow">Индивидуальный разбор</p><h3>${h.cta?.title || 'Не нашли ответ?'}</h3><p>${h.cta?.text || 'Опишите ситуацию — первичная консультация бесплатно.'}</p><a class="btn btn--primary" href="#contact">${h.cta?.label || 'Описать ситуацию'}</a></div>
+  </aside>
+</div></section>
+${contactSection(ctx, { context: t.slug })}`,
+  });
+}
+
+const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+function isoDate(ru) {
+  const m = /^(\d{1,2}) (\S+) (\d{4})/.exec(ru || '');
+  const mi = m ? MONTHS.indexOf(m[2]) : -1;
+  return mi >= 0 ? `${m[3]}-${String(mi + 1).padStart(2, '0')}-${m[1].padStart(2, '0')}` : undefined;
+}
+
+export function articlePage(ctx, a, legacy, bookmarked) {
+  const t = a.topic ? topicBySlug.get(a.topic) : null;
+  const c = articleContent(a.slug);
+  const more = t ? t.articleSlugs.filter((s) => s !== a.slug).slice(0, 5).map((s) => articleBySlug.get(s)) : [];
+  const docs = documentSlugsForArticle(a.slug).map((s) => downloadBySlug.get(s)).filter(Boolean);
+  const ld = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: a.title,
+    description: a.description,
+    inLanguage: 'ru-RU',
+    dateModified: isoDate(c?.updatedAt),
+    mainEntityOfPage: config.baseUrl + a.path,
+    author: { '@id': `${config.baseUrl}/#organization` },
+    publisher: { '@id': `${config.baseUrl}/#organization` },
+  };
+  const jsonld = [ld];
+  if (c?.faq.length) jsonld.push(faqJsonLd(c.faq));
+  return layout(ctx, {
+    title: a.metaTitle,
+    description: a.description,
+    path: a.path,
+    jsonld,
+    body: html`${pageHead({ crumbs: [home, ['База знаний', '/knowledge/'], ...(t ? [[t.title, t.path]] : []), [a.title, a.path]], eyebrow: c ? `${c.type} · ${c.practice}` : t?.title || 'База знаний', title: a.title, lead: a.description })}
+<section class="wrap section--tight"><div class="layout-aside">
+  <article class="stack-lg">
+    ${c ? html`<div class="article-meta"><span class="chip">${icon('clock')}${readingTime(c)}</span><span class="chip">Обновлено: ${c.updatedAt}</span><span class="chip">Редакция: Мосдевелопмент Право</span></div>
+    <p class="lead-text">${c.intro}</p>
+    ${keyPoints(c.highlights)}
+    ${docs.length ? html`<div class="card"><p class="eyebrow">Полезные шаблоны</p><h2 class="h3">Документы по этой ситуации</h2><p class="muted">Откройте подходящий образец, изучите структуру и скачайте PDF или DOCX для адаптации.</p>${articleList(docs)}</div>` : ''}
+    <div class="prose">${sectionsBody(c.sections)}</div>
+    ${sourcesList(c.sources)}
+    ${c.faq.length ? html`<div class="stack"><p class="eyebrow">Частые вопросы</p><h2 class="h3">Короткие ответы по ситуации</h2>${faqBlock(c.faq)}</div>` : ''}
+    <p class="muted disclaimer">${c.disclaimer}</p>` : html`${legacyBody(legacy)}<p class="muted" style="font-size:var(--fs-14)">Материалы базы знаний носят информационный характер и не заменяют анализ конкретной ситуации.</p>`}
+  </article>
+  <aside class="stack aside-sticky">
+    ${bookmarkButton(ctx, a.path, a.title, bookmarked)}
+    <div class="card" style="background:var(--g-brand-soft)"><h3>Разберём вашу ситуацию</h3><p>Первичная консультация — бесплатно.</p><a class="btn btn--primary" href="#contact">Обсудить свою ситуацию</a></div>
+    ${more.length ? html`<div class="card"><p class="eyebrow">Ещё по теме</p>${more.map((m) => html`<a href="${m.path}">${m.title}</a>`)}${t ? html`<a class="link-arrow" href="${t.path}">Все материалы по теме ${icon('arrow')}</a>` : ''}</div>` : ''}
+  </aside>
+</div></section>
+${contactSection(ctx, { context: a.topic })}`,
+  });
+}
+
+export function downloadsIndex(ctx) {
+  return layout(ctx, {
+    title: 'Шаблоны юридических документов' + S,
+    description: 'Юридические документы: заявления, жалобы, претензии, ходатайства и другие шаблоны с удобным поиском и заполнением.',
+    path: '/knowledge/downloads/',
+    body: html`${pageHead({ crumbs: [home, ['База знаний', '/knowledge/'], ['Шаблоны документов', '/knowledge/downloads/']], eyebrow: 'Документы', title: 'Юридические документы', lead: 'Найдите юридический документ, откройте шаблон и заполните его.' })}
+<section class="wrap section--tight">${alert('info', 'Важно: перед использованием проверьте адресата, сроки и применимость шаблона к вашей ситуации.')}</section>
+<section class="wrap section--tight">${topics.filter((t) => downloads.some((d) => d.topic === t.slug)).map((t) => html`<div class="stack" style="margin-bottom:var(--s-10)"><h2 class="h3">${t.title}</h2>${articleList(downloads.filter((d) => d.topic === t.slug))}</div>`)}</section>
+${ctaBand('Нужен документ под вашу ситуацию?', 'Подготовим его с учётом ваших обстоятельств.')}
+${contactSection(ctx)}`,
+  });
+}
+
+export function downloadPage(ctx, d, legacy, bookmarked, files) {
+  const t = topicBySlug.get(d.topic);
+  const c = documentContent(d.slug) || {};
+  const guides = articleSlugsForDocument(d.slug).map((s) => articleBySlug.get(s)).filter(Boolean);
+  const similar = downloads.filter((x) => x.slug !== d.slug && documentContent(x.slug)?.practice === c.practice).slice(0, 3);
+  const hasFiles = files.docx || files.pdf;
+  return layout(ctx, {
+    title: d.metaTitle,
+    description: d.metaDescription,
+    path: d.path,
+    scripts: c.online ? ['/js/docfill.js'] : [],
+    body: html`${pageHead({ crumbs: [home, ['База знаний', '/knowledge/'], ['Шаблоны документов', '/knowledge/downloads/'], [d.title, d.path]], eyebrow: `Шаблон документа${c.code ? ` · ${c.code}` : ''}`, title: d.title, lead: d.description, art: '/img/icons3d/value-documents.webp' })}
+<section class="wrap section--tight"><div class="layout-aside">
+  <article class="stack-lg">
+    ${c.practice ? html`<div class="article-meta"><span class="chip">${c.practice}</span></div>` : ''}
+    ${hasFiles ? html`<div class="stack"><p class="eyebrow">Образец документа</p><div class="hero-actions" style="margin:0">
+      ${files.docx ? html`<a class="btn btn--primary" href="${d.docx}" download>${icon('download')}Скачать Word (DOCX)</a>` : ''}
+      ${files.pdf ? html`<a class="btn btn--ghost" href="${d.pdf}" target="_blank" rel="noopener">${icon('eye')}Открыть PDF</a>` : ''}
+    </div></div>` : ''}
+    ${c.online ? docFiller(d, c.online) : ''}
+    <div class="card card--note"><h3>Важно перед использованием</h3><p>Это информационный шаблон, а не готовая правовая позиция. Проверьте адресата, необходимые документы, сроки, порядок подачи и действующие нормы права. Замените все поля и подсказки своими данными.</p></div>
+    ${legacy ? legacyBody(legacy) : ''}
+    ${guides.length ? html`<div class="stack"><h2 class="h3">По теме документа</h2>${articleList(guides)}</div>` : ''}
+    ${similar.length ? html`<div class="stack"><h2 class="h3">Похожие шаблоны</h2>${articleList(similar)}<a class="link-arrow" href="/knowledge/downloads/">Все документы ${icon('arrow')}</a></div>` : ''}
+  </article>
+  <aside class="stack aside-sticky">
+    ${bookmarkButton(ctx, d.path, d.title, bookmarked)}
+    ${t ? html`<a class="card" href="${t.path}"><p class="eyebrow">Тема</p><h3>${t.title}</h3></a>` : ''}
+    <div class="card" style="background:var(--g-brand-soft)"><p class="eyebrow">Помощь юриста</p><h3>Нужен документ под вашу ситуацию?</h3><p>Подготовим с учётом обстоятельств дела — от 10 000 ₽.</p><a class="btn btn--primary" href="#contact">Обсудить ситуацию</a></div>
+  </aside>
+</div></section>
+${contactSection(ctx, { context: d.topic })}`,
+  });
+}
+
+// Заполнение шаблона на сайте: поля обрабатываются только в браузере (public/js/docfill.js), на сервер не отправляются.
+function docFiller(d, o) {
+  return html`<section class="card filler" id="fill-online" aria-labelledby="fill-title" data-docfill data-title="${d.title}" data-slug="${d.slug}">
+  <p class="eyebrow">Удобно с телефона</p>
+  <h2 class="h3" id="fill-title">Заполните документ прямо на сайте</h2>
+  <p>Без Word и регистрации: ответьте на вопросы, проверьте готовый текст и сохраните его. Поля обрабатываются на вашем устройстве и не отправляются компании.</p>
+  <p class="muted">${o.introduction}</p>
+  ${o.caution ? alert('warning', `Особая процедура. ${o.caution}`) : ''}
+  <noscript>${alert('info', 'Для заполнения на сайте включите JavaScript — или скачайте образец выше.')}</noscript>
+  <form class="form" data-docfill-form novalidate hidden>
+    ${o.fields.map((f) => html`<div class="field">
+      <label for="df-${f.id}">${f.label}${f.required ? html` <b aria-hidden="true">*</b>` : ''}</label>
+      ${f.multiline
+        ? html`<textarea class="textarea" id="df-${f.id}" name="${f.id}" ${f.required ? html`required` : ''} placeholder="${f.placeholder || ''}" maxlength="8000"></textarea>`
+        : html`<input class="input" id="df-${f.id}" name="${f.id}" type="${f.type === 'date' ? 'date' : 'text'}" ${f.required ? html`required` : ''} placeholder="${f.placeholder || ''}" maxlength="500" data-label="${f.label}">`}
+      ${f.hint ? html`<span class="hint">${f.hint}</span>` : ''}
+      <span class="error" data-error-for="${f.id}" hidden></span>
+    </div>`)}
+    <p class="muted" style="font-size:var(--fs-14)">Поля со звёздочкой обязательны. Не знаете сведения — не угадывайте: проверьте их в документах.</p>
+    <div><button class="btn btn--primary" type="submit">Посмотреть заполненный документ</button></div>
+  </form>
+  <div class="stack" data-docfill-result hidden>
+    <h3>Проверьте готовый текст</h3>
+    <p class="muted">Документ формируется из введённых сведений. При необходимости отредактируйте его прямо здесь. Подпись ставится отдельно. Перед подачей проверьте адресата, требования и порядок обращения.</p>
+    <label class="visually-hidden" for="df-preview">Текст документа</label>
+    <textarea class="textarea doc-preview" id="df-preview" rows="18"></textarea>
+    <div class="hero-actions" style="margin:0">
+      <button class="btn btn--primary" type="button" data-docfill-download>${icon('download')}Скачать текст (.txt)</button>
+      <button class="btn btn--ghost" type="button" data-docfill-copy>Скопировать</button>
+      <button class="btn btn--ghost" type="button" data-docfill-edit>Изменить ответы</button>
+    </div>
+    <p class="muted" role="status" data-docfill-status></p>
+  </div>
+</section>`;
+}
+
+const OFFICIAL_TASKS = {
+  pravo: 'Найти официальный текст закона',
+  kad: 'Найти арбитражное дело',
+  'my-arbitr': 'Подать документы в арбитражный суд',
+  sudrf: 'Найти дело в суде общей юрисдикции',
+  'ej-sudrf': 'Подать документы в суд онлайн',
+  fns: 'Проверить компанию или ИП',
+  fssp: 'Проверить исполнительное производство',
+  genproc: 'Подать обращение в прокуратуру',
+  onlineinspection: 'Обратиться в трудовую инспекцию',
+  rosreestr: 'Проверить сведения о недвижимости',
+  fedresurs: 'Проверить сведения о банкротстве',
+  mvd: 'Направить обращение в МВД',
+};
+const OFFICIAL_GROUP_TITLES = { 'Нормативные акты': 'Законы и постановления', Суды: 'Судебные дела', Проверка: 'Компании и имущество', Обращения: 'Обращения в госорганы', Исполнение: 'Долги у приставов' };
+
+export function sectionPage(ctx, key, legacy) {
+  const s = knowledgeSections[key];
+  const crumbsList = key === 'sizo'
+    ? [home, ['База знаний', '/knowledge/'], ['СИЗО и ФСИН', '/knowledge/topics/sizo-i-fsin/'], ['Сервисы', s.path]]
+    : [home, ['База знаний', '/knowledge/'], [s.title, s.path]];
+  const body = key === 'services'
+    ? html`${pageHead({ crumbs: crumbsList, eyebrow: 'Государственные и судебные сайты', title: s.title, lead: 'Найдите судебное дело, проверьте компанию, недвижимость или долги, подайте обращение. Каждая ссылка откроет сайт соответствующего ведомства или суда.' })}
+${officialGroups.map((g) => html`<section class="wrap section--tight"><h2 class="h3">${OFFICIAL_GROUP_TITLES[g] || g}</h2>
+  <div class="grid">${officialServices.filter((x) => x.group === g).map((x) => html`<a class="card reveal ext-card" href="${x.href}" rel="noopener" target="_blank" aria-label="${OFFICIAL_TASKS[x.id] || x.title} — ${x.title}, откроется в новой вкладке">
+    <span class="muted" style="font-size:var(--fs-14)">${x.domain}</span><h3>${OFFICIAL_TASKS[x.id] || x.title}</h3><p><b>${x.title}.</b> ${x.description}</p><span class="link-arrow more">Открыть сайт ${icon('arrow')}</span></a>`)}</div></section>`)}
+<section class="wrap section--tight"><p class="muted">Ссылки ведут на внешние государственные и судебные сайты. Перед подачей документов проверяйте сроки и требования ведомства.</p></section>
+${ctaBand('Нужна помощь с найденными сведениями?', 'Разберём документы и поможем определить дальнейшие действия.')}`
+    : key === 'sizo'
+      ? html`${pageHead({ crumbs: crumbsList, eyebrow: 'Практический навигатор · СИЗО и ФСИН', title: s.title, lead: `Письма, связь, денежные переводы, передачи, лекарства и официальные каналы обращений. Адреса проверены на ${detentionCheckedAt}.` })}
+<section class="wrap section--tight"><div class="card card--note"><p class="eyebrow">Перед использованием</p><h2 class="h3">Сначала выберите конкретное учреждение</h2><p>Наличие сервиса в этом каталоге не означает, что он работает во всех СИЗО и колониях. Перед оплатой проверяйте поддержку учреждения, данные получателя, ограничения и условия возврата.</p></div></section>
+${[...new Set(detentionServices.map((x) => x.category))].map((cat) => html`<section class="wrap section--tight"><h2 class="h3">${cat}</h2>
+  <div class="grid">${detentionServices.filter((x) => x.category === cat).map((x) => html`<a class="card reveal ext-card" href="${x.href}" rel="noopener" target="_blank" aria-label="${x.title}, откроется в новой вкладке">
+    <span class="muted" style="font-size:var(--fs-14)">${new URL(x.href).hostname}</span><h3>${x.title}</h3><p>${x.description}</p>${x.note ? html`<p class="muted" style="font-size:var(--fs-14)">${x.note}</p>` : ''}<span class="link-arrow more">Открыть сайт ${icon('arrow')}</span></a>`)}</div></section>`)}
+<section class="wrap section--tight"><div class="card card--warn"><p class="eyebrow">Важно</p><h2 class="h3">Не переводите деньги неизвестным посредникам</h2><p>Проверяйте домен, название сервиса, реквизиты получателя и поддержку конкретного учреждения. Старые домены могут перестать принадлежать прежним владельцам, а коммерческие сервисы могут менять географию работы.</p></div></section>`
+      : html`${pageHead({ crumbs: crumbsList, eyebrow: 'База знаний', title: s.title, lead: s.description })}<section class="wrap section--tight">${legacyBody(legacy)}</section>`;
+  return layout(ctx, { title: s.metaTitle, description: s.description, path: s.path, body: html`${body}${contactSection(ctx, key === 'sizo' ? { context: 'sizo-i-fsin' } : {})}` });
+}
+
 export function aboutPage(ctx) {
   return layout(ctx, {
     title: 'О компании | Мосдевелопмент Право',
     description: 'Мосдевелопмент Право — юридическая компания. Уголовно-правовые вопросы, подготовка правовой позиции, документов и обращений в государственные органы.',
     path: '/about/',
-    body: html`${pageHead({ crumbs: [home, ['О компании', '/about/']], eyebrow: 'О компании', title: 'Сильная правовая позиция начинается с точного понимания ситуации', lead: 'Работаем с гражданами и бизнесом: изучаем обстоятельства и документы, объясняем риски и готовим последовательный план действий.' })}
+    body: html`${pageHead({ crumbs: [home, ['О компании', '/about/']], eyebrow: 'О компании', title: 'Сильная правовая позиция начинается с точного понимания ситуации.', lead: 'Работаем с гражданами и бизнесом: изучаем обстоятельства и документы, объясняем правовые риски и готовим последовательный план действий. Основные направления представлены ниже.' })}
 <section class="wrap section--tight"><div class="grid">
-  <div class="card reveal"><img src="/img/icons3d/criminal-law.webp" alt="" width="96" height="96" style="width:96px"><h3>Уголовно-правовые вопросы</h3><p>Правовая позиция, заявления, жалобы, ходатайства и обращения в МВД, Следственный комитет, прокуратуру и другие органы.</p></div>
-  <div class="card reveal"><img src="/img/icons3d/public-authorities.webp" alt="" width="96" height="96" style="width:96px"><h3>Споры и защита интересов</h3><p>Гражданские, административные, трудовые и имущественные споры, недвижимость, строительство и взыскание задолженности.</p></div>
-  <div class="card reveal"><img src="/img/icons3d/value-position.webp" alt="" width="96" height="96" style="width:96px"><h3>Правовая стратегия</h3><p>Анализируем ситуацию, оцениваем риски и выстраиваем стратегию с опорой на закон и фактические обстоятельства.</p></div>
+  <div class="card reveal"><img src="/img/icons3d/criminal-law.webp" alt="" width="96" height="96" style="width:96px"><span class="eyebrow">01</span><h3>Уголовно-правовые вопросы</h3><p>Подготовка правовой позиции, заявлений, жалоб, ходатайств и обращений в МВД, Следственный комитет, прокуратуру и другие государственные органы.</p></div>
+  <div class="card reveal"><img src="/img/icons3d/public-authorities.webp" alt="" width="96" height="96" style="width:96px"><span class="eyebrow">02</span><h3>Споры и защита интересов</h3><p>Юридическая помощь по гражданским, административным, трудовым и имущественным спорам, вопросам недвижимости, строительства и взыскания задолженности.</p></div>
+  <div class="card reveal"><img src="/img/icons3d/value-position.webp" alt="" width="96" height="96" style="width:96px"><span class="eyebrow">03</span><h3>Правовая стратегия</h3><p>Анализируем ситуацию, оцениваем риски и формируем последовательную правовую стратегию с опорой на законодательство и фактические обстоятельства дела.</p></div>
 </div></section>
 <section class="wrap section"><div class="section-head"><p class="eyebrow">Команда</p><h2>Руководство компании</h2></div><div class="team">${team.map(personCard)}</div></section>
-<section class="wrap section--tight"><div class="card"><h2 style="font-size:var(--fs-h3)">Реквизиты компании</h2>
+<section class="wrap section--tight" id="requisites"><div class="card"><h2 style="font-size:var(--fs-h3)">Реквизиты компании</h2>
   <dl class="dl">
     <dt>Наименование</dt><dd>${company.legalName}</dd>
     <dt>ИНН</dt><dd>${company.inn}</dd><dt>КПП</dt><dd>${company.kpp}</dd><dt>ОГРН</dt><dd>${company.ogrn}</dd>
@@ -573,6 +767,7 @@ export function aboutPage(ctx) {
     <dt>Р/с</dt><dd>${company.bank.account}</dd><dt>К/с</dt><dd>${company.bank.corr}</dd>
     <dt>Адрес</dt><dd>${company.address}</dd>
   </dl></div></section>
+<section class="wrap section--tight"><div class="hero-actions" style="margin:0"><a class="btn btn--primary" href="#contact">Обсудить ситуацию</a><a class="btn btn--ghost" href="/directions/">Посмотреть услуги</a></div></section>
 ${contactSection(ctx)}`,
   });
 }
@@ -584,7 +779,7 @@ export function teamPage(ctx, m) {
     description: m.metaDescription,
     path: `/team/${m.slug}/`,
     jsonld: [ld],
-    body: html`<section class="wrap section--tight">${crumbs([home, ['О компании', '/about/'], [m.name, `/team/${m.slug}/`]])}
+    body: html`<section class="wrap section--tight team-hero">${crumbs([home, ['О компании', '/about/'], [m.name, `/team/${m.slug}/`]])}
 <div class="grid grid--2" style="align-items:center;gap:var(--s-10)">
   <div class="person" style="max-width:440px"><div class="photo"><img src="${m.photo}" alt="${m.photoAlt}" width="480" height="600"></div></div>
   <div class="stack">
@@ -593,10 +788,13 @@ export function teamPage(ctx, m) {
     <p class="accent-title" style="font:600 1.125rem/1.3 var(--font-display)">${m.role}</p>
     <p class="lead" style="font-size:var(--fs-18)">${m.lead}</p>
     ${m.about.map((p) => html`<p>${p}</p>`)}
-    <div class="hero-tags">${m.focus.map((f) => html`<span class="chip chip--accent"><i></i>${f}</span>`)}</div>
-    <div class="hero-actions">
-      <a class="btn btn--primary" href="tel:${company.phones[0].tel}">${icon('phone')}Позвонить</a>
-      <a class="btn btn--ghost" href="mailto:${company.email}">${icon('mail')}Написать</a>
+    <p class="eyebrow" style="margin-top:var(--s-4)">Связаться</p>
+    <div class="hero-actions" style="margin:0">
+      <a class="btn btn--primary" href="tel:${m.contacts.phone.tel}">${icon('phone')}Позвонить</a>
+      <a class="btn btn--ghost" href="${m.contacts.whatsapp}" rel="noopener" target="_blank">${icon('whatsapp')}WhatsApp</a>
+      <a class="btn btn--ghost" href="${m.contacts.telegram}" rel="noopener" target="_blank">${icon('telegram')}Telegram</a>
+      ${m.contacts.max ? html`<a class="btn btn--ghost" href="${m.contacts.max}" rel="noopener" target="_blank">${icon('chat')}MAX</a>` : ''}
+      <a class="btn btn--ghost" href="mailto:${m.contacts.email}">${icon('mail')}Написать на email</a>
     </div>
   </div>
 </div></section>
@@ -609,7 +807,7 @@ export function processPage(ctx) {
     title: 'Как мы работаем — Мосдевелопмент Право',
     description: 'Все этапы работы с юридическим обращением в одном списке.',
     path: '/process/',
-    body: html`${pageHead({ crumbs: [home, ['Как мы работаем', '/process/']], eyebrow: 'Порядок работы', title: 'Как мы работаем', lead: 'От первого обращения до готовых документов — четыре последовательных шага.' })}
+    body: html`${pageHead({ crumbs: [home, ['Как мы работаем', '/process/']], eyebrow: 'Порядок работы', title: 'Как мы работаем', lead: 'От первого обращения до передачи готовых документов — четыре последовательных шага.' })}
 <section class="wrap section--tight"><div class="steps">${process.map((s) => html`<div class="step reveal"><img src="${s.img}" alt="" width="88" height="88" loading="lazy"><h3>${s.title}</h3><p>${s.text}</p></div>`)}</div></section>
 <section class="wrap section--tight"><div class="card" style="background:var(--g-brand-soft)"><h2 style="font-size:var(--fs-h3)">После согласования — в личном кабинете</h2><p>Статус дела, документы, счета и сообщения от специалиста собраны в одном месте. Оплата проходит через платёжную систему, статус подтверждает сервер.</p><a class="link-arrow" href="/login/">Войти в кабинет ${icon('arrow')}</a></div></section>
 ${contactSection(ctx)}`,
@@ -660,8 +858,11 @@ export function partnershipPage(ctx) {
     title: 'Партнёрство с юристами, адвокатами и нотариусами | Мосдевелопмент Право',
     description: 'Профессиональное сотрудничество Мосдевелопмент Право с юристами, адвокатами и нотариусами. Форматы партнёрства и взаимодействия по клиентским обращениям.',
     path: '/partnership/',
-    body: html`${pageHead({ crumbs: [home, ['Сотрудничество', '/partnership/']], eyebrow: 'Профессиональное сотрудничество', title: 'Партнёрство с юристами, адвокатами и нотариусами', lead: 'Открыты к сотрудничеству со специалистами, чьи компетенции усиливают работу со сложными правовыми задачами. Москва, Московская область и другие регионы.' })}
-<section class="wrap section--tight"><div class="grid">${partnership.map((p, i) => html`<div class="card reveal"><span class="eyebrow">${String(i + 1).padStart(2, '0')}</span><h3>${p.title}</h3><p>${p.text}</p></div>`)}</div></section>
+    body: html`${pageHead({ crumbs: [home, ['Сотрудничество', '/partnership/']], eyebrow: 'Профессиональное сотрудничество', title: 'Партнёрство с юристами, адвокатами и нотариусами', lead: 'Мосдевелопмент Право открыто к профессиональному сотрудничеству со специалистами, чьи компетенции могут усиливать работу с клиентскими обращениями и сложными правовыми задачами.' })}
+<section class="wrap section--tight"><div class="section-head"><p class="eyebrow">Форматы взаимодействия</p><h2>Работаем с профильными специалистами под конкретную задачу.</h2>
+  <p>Рассматриваем индивидуальные форматы сотрудничества в Москве, Московской области и других регионах.</p>
+  <p>Взаимодействие может строиться вокруг отдельных клиентских обращений, профильной экспертизы, процессуального представительства, нотариального сопровождения и других профессиональных задач.</p></div>
+<div class="grid">${partnership.map((p, i) => html`<div class="card reveal"><span class="eyebrow">${String(i + 1).padStart(2, '0')}</span><h3>${p.title}</h3><p>${p.text}</p></div>`)}</div></section>
 <section class="wrap section--tight"><a class="btn btn--primary" href="/partnership/contact/">Направить предложение ${icon('arrow')}</a></section>`,
   });
 }
@@ -678,17 +879,19 @@ export function partnershipContactPage(ctx, formState = {}) {
 
 export function legalPage(ctx, key, legacy) {
   const doc = key === 'privacy' ? company.legalDocs[0] : company.legalDocs[1];
-  const meta = key === 'privacy'
-    ? ['Политика конфиденциальности — Мосдевелопмент Право', 'Политика обработки персональных данных и конфиденциальности сайта mdpravo.ru.']
-    : ['Согласие на обработку персональных данных — Мосдевелопмент Право', 'Условия согласия на обработку персональных данных при отправке обращения через mdpravo.ru.'];
+  const text = legalTexts[key];
   return layout(ctx, {
-    title: meta[0],
-    description: meta[1],
+    title: text.metaTitle,
+    description: text.description,
     path: doc.path,
-    body: html`${pageHead({ crumbs: [home, [doc.title, doc.path]], title: doc.title })}
-<section class="wrap section--tight"><div class="stack">
-  <a class="link-arrow" href="${doc.pdf}">${icon('download')} PDF-версия документа</a>
-  ${legacyBody(legacy)}
+    body: html`${pageHead({ crumbs: [home, [doc.title, doc.path]], eyebrow: `Правовая информация · обновлено ${text.updated}`, title: doc.title, lead: text.lead })}
+<section class="wrap section--tight"><div class="layout-aside">
+  <article class="prose">${legacy ? legacyBody(legacy) : text.sections.map((sec) => html`<h2>${sec.heading}</h2>${(sec.paragraphs || []).map((p) => html`<p>${p}</p>`)}${sec.bullets ? html`<ul>${sec.bullets.map((b) => html`<li>${b}</li>`)}</ul>` : ''}`)}</article>
+  <aside class="stack aside-sticky">
+    <a class="card" href="${doc.pdf}" target="_blank" rel="noopener"><p class="eyebrow">Документ</p><h3>PDF-версия</h3><span class="link-arrow">Открыть ${icon('arrow')}</span></a>
+    <a class="link-arrow" href="${key === 'privacy' ? '/consent/' : '/privacy/'}">${key === 'privacy' ? 'Согласие на обработку данных' : 'Политика конфиденциальности'} ${icon('arrow')}</a>
+    <a class="link-arrow" href="/#contact">${key === 'privacy' ? 'Связаться с нами' : 'Вернуться к форме'} ${icon('arrow')}</a>
+  </aside>
 </div></section>`,
   });
 }

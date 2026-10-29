@@ -146,6 +146,7 @@ export function layout(ctx, o) {
 <link rel="stylesheet" href="/css/app.css?v=${ASSET_V}">
 <link rel="stylesheet" href="/css/scene.css?v=${ASSET_V}">
 <script src="/js/app.js?v=${ASSET_V}" defer></script>
+${(o.scripts || []).map((src) => html`<script src="${src}?v=${ASSET_V}" defer></script>`)}
 ${metrika}
 ${o.home ? html`<script type="application/ld+json">${jsonScript(ORG_LD)}</script>` : ''}
 ${(o.jsonld || []).map((j) => html`<script type="application/ld+json">${jsonScript(j)}</script>`)}

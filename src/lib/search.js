@@ -1,5 +1,6 @@
 // Умный поиск: SQLite FTS5 по статьям, шаблонам, услугам, срочным ситуациям и темам.
 import { articles, downloads, topics, urgent } from '../content/knowledge.js';
+import { articleContent, directionContent, hubContent, plainText, taskContent, urgentContent } from '../content/library.js';
 import { directions } from '../content/services.js';
 import * as db from '../db/index.js';
 import { escape } from './html.js';
@@ -12,13 +13,27 @@ const KIND = { article: 'Статья', download: 'Образец докумен
 export function rebuildIndex() {
   const legacy = new Map(db.all('SELECT path, html FROM legacy_content').map((r) => [r.path, htmlToText(r.html)]));
   const rows = [];
-  for (const a of articles) rows.push([a.path, 'article', a.title, `${a.description} ${legacy.get(a.path) || ''}`]);
+  const join = (...parts) => parts.flat().filter(Boolean).join(' ');
+  for (const a of articles) {
+    const c = articleContent(a.slug);
+    rows.push([a.path, 'article', a.title, join(a.description, c ? plainText(c) : '', legacy.get(a.path))]);
+  }
   for (const d of downloads) rows.push([d.path, 'download', d.title, `${d.description} образец шаблон ${legacy.get(d.path) || ''}`]);
-  for (const u of urgent) rows.push([u.path, 'urgent', u.title, `${u.description} ${legacy.get(u.path) || ''}`]);
-  for (const t of topics) rows.push([t.path, 'topic', t.title, t.description]);
+  for (const u of urgent) {
+    const g = urgentContent(u.slug);
+    rows.push([u.path, 'urgent', u.title, join(u.description, g ? [g.steps.map((s) => `${s.title}. ${s.text}`), g.avoid, g.documents] : '', legacy.get(u.path))]);
+  }
+  for (const t of topics) {
+    const h = hubContent(t.slug);
+    rows.push([t.path, 'topic', t.title, join(t.description, h ? [h.intro, h.tasks, (h.faqs || []).map((f) => `${f.question} ${f.answer}`)] : '')]);
+  }
   for (const d of directions) {
-    rows.push([d.path, 'direction', d.title, `${d.description} ${d.short}`]);
-    for (const t of d.tasks) rows.push([t.path, 'service', t.title, `${t.description} ${d.title}`]);
+    const c = directionContent(d.slug);
+    rows.push([d.path, 'direction', d.title, join(d.description, d.short, c ? [c.intro, c.situations, c.documents] : '')]);
+    for (const t of d.tasks) {
+      const tc = taskContent(d.slug, t.slug);
+      rows.push([t.path, 'service', t.title, join(t.description, d.title, tc ? [tc.intro, tc.situations, tc.documents] : '')]);
+    }
   }
   db.tx(() => {
     db.run('DELETE FROM search_index');

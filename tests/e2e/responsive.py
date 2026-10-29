@@ -13,7 +13,9 @@ from playwright.sync_api import sync_playwright  # noqa: E402
 BASE = os.environ.get("BASE", "http://localhost:3100")
 WIDTHS = [320, 360, 390, 430, 768, 1024, 1280, 1440, 1920]
 PUBLIC = ["/", "/directions/", "/services/criminal-law/", "/services/debt-collection/dolg-po-raspiske/", "/knowledge/",
-          "/knowledge/vyzvali-dlya-dachi-obyasneniy/", "/about/", "/prices/", "/contacts/", "/login/"]
+          "/knowledge/vyzvali-dlya-dachi-obyasneniy/", "/about/", "/prices/", "/contacts/", "/login/",
+          "/urgent/zaderzhali/", "/knowledge/downloads/zayavlenie-na-uvolnenie/", "/knowledge/topics/sizo-i-fsin/",
+          "/knowledge/sizo-fsin-services/", "/knowledge/services/", "/privacy/", "/team/anna/"]
 PRIVATE = ["/cabinet/", "/cabinet/cases/D-2026-00001/", "/cabinet/invoices/", "/cabinet/documents/"]
 
 CHECK = """() => {
